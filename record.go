@@ -2,13 +2,10 @@ package lib
 
 import (
 	"bytes"
-	"crypto/md5"
 	"fmt"
 	"log"
 	"strconv"
 	"time"
-
-	"inkedawn/sunShineSportsHelper/utility"
 )
 
 type Record struct {
@@ -31,10 +28,10 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 			// 防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
 			if remain-limitParams.RandDistance.Max > limitParams.LimitSingleDistance.Min {
 				// 正常取随机值
-				singleDistance = float64(utility.RandRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
+				singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
 			} else {
 				// 随机选择本条为最小限制距离，或者为下一条预留最小限制距离
-				singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[utility.RandRange(0, 1)]
+				singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[randRange(0, 1)]
 			}
 		} else if remain >= limitParams.LimitSingleDistance.Min && remain <= limitParams.LimitSingleDistance.Max {
 			// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
@@ -48,7 +45,7 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 		}
 
 		// 小数部分随机化 -0.09 ~ 0.09
-		tinyPart := float64(utility.RandRange(0, 99999)) / 1000000
+		tinyPart := float64(randRange(0, 99999)) / 1000000
 		switch r := singleDistance + tinyPart; {
 		case r < limitParams.LimitSingleDistance.Min:
 			singleDistance = limitParams.LimitSingleDistance.Min
@@ -68,11 +65,11 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 
 		var randomDuration time.Duration
 		// 时间间隔随机化
-		randomDuration = time.Duration(utility.RandRange(limitParams.MinuteDuration.Min, limitParams.MinuteDuration.Max)) * time.Minute
-		randomDuration += time.Duration(utility.RandRange(0, 60)) * time.Second // 时间间隔秒级随机化
+		randomDuration = time.Duration(randRange(limitParams.MinuteDuration.Min, limitParams.MinuteDuration.Max)) * time.Minute
+		randomDuration += time.Duration(randRange(0, 60)) * time.Second // 时间间隔秒级随机化
 
-		endTime := lastBeginTime.Add(-time.Duration(utility.RandRange(1, 30)) * time.Minute)
-		endTime = endTime.Add(-time.Duration(utility.RandRange(1, 60)) * time.Second)
+		endTime := lastBeginTime.Add(-time.Duration(randRange(1, 30)) * time.Minute)
+		endTime = endTime.Add(-time.Duration(randRange(1, 60)) * time.Second)
 		beginTime := endTime.Add(-randomDuration)
 
 		records = append(records, Record{
@@ -101,7 +98,7 @@ func CreateRecord(distance float64, beforeTime time.Time, duration time.Duration
 }
 
 func GetXTcode(userId int64, beginTime string) string {
-	key := fmt.Sprintf("%x", md5.Sum([]byte(strconv.FormatInt(userId, 10)+beginTime+"stlchang")))
+	key := MD5String(strconv.FormatInt(userId, 10) + beginTime + "stlchang")
 	var xtCode bytes.Buffer
 	xtCode.WriteByte(key[7])
 	xtCode.WriteByte(key[3])
@@ -116,7 +113,7 @@ func GetXTcode(userId int64, beginTime string) string {
 
 func GetXTcodeV2(userId int64, beginTime string, distance string) string {
 	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + "stlchang"
-	key := fmt.Sprintf("%x", md5.Sum([]byte(phrase)))
+	key := MD5String(phrase)
 	log.Println(phrase, key)
 	var xtCode bytes.Buffer
 	xtCode.WriteByte(key[7])
