@@ -34,8 +34,9 @@ const (
 	loginURL          = server + "/sunShine_Sports/loginSport.action"
 	uploadDataURL     = server + "/sunShine_Sports/xtUploadData.action"
 	getSportResultURL = server + "/sunShine_Sports/xtGetSportResult.action"
-	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
+	postTestDataURL   = server + "/sunShine_Sports/postTestData.action"
 
+	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 	schoolId = "60"
 )
 
@@ -121,6 +122,69 @@ func (s *Session) UpdateLimitParams() {
 func (s *Session) UploadRecord(record Record) (e error) {
 	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.XTcode)
 }
+func (s *Session) UploadTestRecord(record Record) (e error) {
+	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.XTcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()))
+}
+
+func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
+	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
+		"results":   {toExchangeDistanceStr(distance)},
+		"beginTime": {toExchangeTimeStr(beginTime)},
+		"endTime":   {toExchangeTimeStr(endTime)},
+		"isValid":   {"1"},
+		"schoolId":  {schoolId},
+		"xtCode":    {xtCode},
+		"bz":        {""},
+		"test_time": {toExchangeInt64Str(useTime)},
+	}.Encode()))
+	if err != nil {
+		panic(httpError{"HTTP Create Request Failed.", err})
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
+	req.Header.Set("TokenID", s.TokenID)
+	req.Header.Set("app", "com.ccxyct.sunshinemotion")
+	req.Header.Set("ver", "2.1.0")
+	req.Header.Set("device", "Android,24,7.0")
+	req.Header.Set("model", "Android")
+	req.Header.Set("screen", "1080x1920")
+	req.Header.Set("imei", "")
+	req.Header.Set("imsi", "")
+	req.Header.Set("crack", "0")
+	req.Header.Set("latitude", "0.0")
+	req.Header.Set("longitude", "0.0")
+	req.Header.Set("User-Agent", s.UserAgent)
+
+	resp, err := http.DefaultClient.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		panic(fmt.Errorf("HTTP Send Request Failed! %s", err.Error()))
+	}
+	if resp.StatusCode != http.StatusOK {
+		panic(fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode)))
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(fmt.Errorf("HTTP Read Resp Failed! %s", err.Error()))
+	}
+	var uploadResult struct {
+		Status       int
+		ErrorMessage string
+	}
+	err = json.Unmarshal(respBytes, &uploadResult)
+	if err != nil {
+		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
+	}
+	const successCode = 1
+	if uploadResult.Status != successCode {
+		return fmt.Errorf("server status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
+	}
+	return nil
+}
+
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},

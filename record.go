@@ -90,11 +90,13 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 	}
 	return reverse
 }
-func CreateRecord(distance float64, beforeTime time.Time, duration time.Duration) Record {
-	return Record{Distance: distance,
+func CreateRecord(userID int64, distance float64, beforeTime time.Time, duration time.Duration) Record {
+	r := Record{Distance: distance,
 		BeginTime: beforeTime.Add(-duration),
 		EndTime:   beforeTime,
 	}
+	r.XTcode = GetXTcodeV2(userID, toExchangeTimeStr(r.BeginTime), toExchangeDistanceStr(r.Distance))
+	return r
 }
 
 func GetXTcode(userId int64, beginTime string) string {

@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 )
@@ -16,8 +15,12 @@ func fromExchangeTimeStr(s string) (time.Time, error) {
 }
 
 func toExchangeDistanceStr(d float64) string {
-	return fmt.Sprintf("%.3f", d)
+	return strconv.FormatFloat(d, 'f', 3, 64)
 }
 func fromExchangeDistanceStr(s string) (float64, error) {
 	return strconv.ParseFloat(s, 64)
+}
+
+func toExchangeInt64Str(n int64) string {
+	return strconv.FormatInt(n, 10)
 }
