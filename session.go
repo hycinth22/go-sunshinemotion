@@ -128,7 +128,7 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
-	bz := ""
+	bz := "[]"
 	li := GetLi("", bz)
 	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
@@ -190,7 +190,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
-	bz := ""
+	bz := "[]"
 	li := GetLi(xtCode, bz)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
@@ -319,7 +319,6 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 func GetXTcodeV3(userId int64, beginTime string, distance string) string {
 	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + HashSalt
 	key := MD5String(phrase)
-	log.Println("GetXTcodeV3", phrase, key)
 	var xtCode bytes.Buffer
 	xtCode.WriteByte(key[7])
 	xtCode.WriteByte(key[3])
@@ -335,8 +334,6 @@ func GetXTcodeV3(userId int64, beginTime string, distance string) string {
 func GetLi(p0, p1 string) string {
 	phrase := p0 + p1 + HashSalt
 	key := MD5String(phrase)
-	log.Println(phrase, key)
-	log.Println("GetLI", phrase, key)
 	var xtCode bytes.Buffer
 	xtCode.WriteByte(key[7])
 	xtCode.WriteByte(key[3])
