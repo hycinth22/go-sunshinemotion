@@ -5,7 +5,7 @@ import (
 	"crypto/cipher"
 	"fmt"
 
-	"./aesExtend"
+	"github.com/inkedawn/go-sunshinemotion/aesExtend"
 )
 
 const (
