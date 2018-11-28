@@ -13,7 +13,7 @@ type Record struct {
 	Distance  float64
 	BeginTime time.Time
 	EndTime   time.Time
-	XTcode    string
+	xtcode    string
 }
 
 func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64, beforeTime time.Time) []Record {
@@ -77,7 +77,7 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 			Distance:  singleDistance,
 			BeginTime: beginTime,
 			EndTime:   endTime,
-			XTcode:    GetXTcodeV2(userID, toExchangeTimeStr(beginTime), toExchangeDistanceStr(singleDistance)),
+			xtcode:    GetXTcodeV3(userID, toExchangeTimeStr(beginTime), toExchangeDistanceStr(singleDistance)),
 		})
 
 		remain -= singleDistance - tinyPart
@@ -95,7 +95,7 @@ func CreateRecord(userID int64, distance float64, beforeTime time.Time, duration
 		BeginTime: beforeTime.Add(-duration),
 		EndTime:   beforeTime,
 	}
-	r.XTcode = GetXTcodeV2(userID, toExchangeTimeStr(r.BeginTime), toExchangeDistanceStr(r.Distance))
+	r.xtcode = GetXTcodeV3(userID, toExchangeTimeStr(r.BeginTime), toExchangeDistanceStr(r.Distance))
 	return r
 }
 

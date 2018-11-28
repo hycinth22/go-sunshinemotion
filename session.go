@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -31,12 +32,12 @@ func (e httpError) Error() string {
 
 const (
 	server            = "http://www.ccxyct.com:8080"
-	loginURL          = server + "/sunShine_Sports/loginSport.action"
-	uploadDataURL     = server + "/sunShine_Sports/xtUploadData.action"
-	getSportResultURL = server + "/sunShine_Sports/xtGetSportResult.action"
-	postTestDataURL   = server + "/sunShine_Sports/postTestData.action"
-
+	loginURL          = server + "/sunShine_Sports-server1/loginSport.action"
+	uploadDataURL     = server + "/sunShine_Sports-server1/xtUploadData.action"
+	postTestDataURL   = server + "/sunShine_Sports-server1/postTestData.action"
+	getSportResultURL = server + "/sunShine_Sports-server1/xtGetSportResult.action"
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
+
 	schoolId = "60"
 )
 
@@ -120,13 +121,15 @@ func (s *Session) UpdateLimitParams() {
 	}
 }
 func (s *Session) UploadRecord(record Record) (e error) {
-	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.XTcode)
+	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.xtcode)
 }
 func (s *Session) UploadTestRecord(record Record) (e error) {
-	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.XTcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()))
+	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.xtcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()))
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
+	bz := ""
+	li := GetLi("", bz)
 	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
 		"beginTime": {toExchangeTimeStr(beginTime)},
@@ -134,8 +137,9 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		"isValid":   {"1"},
 		"schoolId":  {schoolId},
 		"xtCode":    {xtCode},
-		"bz":        {""},
+		"bz":        {bz},
 		"test_time": {toExchangeInt64Str(useTime)},
+		"li":        {li},
 	}.Encode()))
 	if err != nil {
 		panic(httpError{"HTTP Create Request Failed.", err})
@@ -145,7 +149,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
 	req.Header.Set("TokenID", s.TokenID)
 	req.Header.Set("app", "com.ccxyct.sunshinemotion")
-	req.Header.Set("ver", "2.1.0")
+	req.Header.Set("ver", "2.2.2")
 	req.Header.Set("device", "Android,24,7.0")
 	req.Header.Set("model", "Android")
 	req.Header.Set("screen", "1080x1920")
@@ -186,6 +190,8 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
+	bz := ""
+	li := GetLi(xtCode, bz)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
 		"beginTime": {toExchangeTimeStr(beginTime)},
@@ -193,7 +199,8 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		"isValid":   {"1"},
 		"schoolId":  {schoolId},
 		"xtCode":    {xtCode},
-		"bz":        {""},
+		"bz":        {bz},
+		"li":        {li},
 	}.Encode()))
 	if err != nil {
 		panic(httpError{"HTTP Create Request Failed.", err})
@@ -203,7 +210,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
 	req.Header.Set("TokenID", s.TokenID)
 	req.Header.Set("app", "com.ccxyct.sunshinemotion")
-	req.Header.Set("ver", "2.1.0")
+	req.Header.Set("ver", "2.2.2")
 	req.Header.Set("device", "Android,24,7.0")
 	req.Header.Set("model", "Android")
 	req.Header.Set("screen", "1080x1920")
@@ -307,4 +314,37 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	r.Qualified = httpSporstResult.Qualified
 	r.Distance = httpSporstResult.Result
 	return r, nil
+}
+
+func GetXTcodeV3(userId int64, beginTime string, distance string) string {
+	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + HashSalt
+	key := MD5String(phrase)
+	log.Println("GetXTcodeV3", phrase, key)
+	var xtCode bytes.Buffer
+	xtCode.WriteByte(key[7])
+	xtCode.WriteByte(key[3])
+	xtCode.WriteByte(key[15])
+	xtCode.WriteByte(key[24])
+	xtCode.WriteByte(key[9])
+	xtCode.WriteByte(key[17])
+	xtCode.WriteByte(key[29])
+	xtCode.WriteByte(key[23])
+	return aes_ecb_pkcs5padding_encrypt(xtCode.String())
+}
+
+func GetLi(p0, p1 string) string {
+	phrase := p0 + p1 + HashSalt
+	key := MD5String(phrase)
+	log.Println(phrase, key)
+	log.Println("GetLI", phrase, key)
+	var xtCode bytes.Buffer
+	xtCode.WriteByte(key[7])
+	xtCode.WriteByte(key[3])
+	xtCode.WriteByte(key[11])
+	xtCode.WriteByte(key[20])
+	xtCode.WriteByte(key[9])
+	xtCode.WriteByte(key[14])
+	xtCode.WriteByte(key[29])
+	xtCode.WriteByte(key[21])
+	return aes_ecb_pkcs5padding_encrypt(xtCode.String())
 }
