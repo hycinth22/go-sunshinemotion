@@ -44,6 +44,7 @@ func TestSmartCreateRecords(t *testing.T) {
 }
 
 func TestSession_UploadData(t *testing.T) {
+	return
 	records := SmartCreateRecords(0, &LimitParams{
 		RandDistance:        Float64Range{2.6, 4.0},
 		LimitSingleDistance: Float64Range{2.0, 4.0},
@@ -62,6 +63,7 @@ func TestSession_UploadData(t *testing.T) {
 }
 
 func TestSession_UploadTestRecord(t *testing.T) {
+	return
 	r := CreateRecord(session.UserID, 3.211, time.Now(), 16*time.Minute+12*time.Second)
 
 	t.Logf("%+v", r)
