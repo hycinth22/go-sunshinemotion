@@ -44,6 +44,8 @@ const (
 func CreateSession() *Session {
 	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent}
 }
+
+// DEPRECATED: use LoginEx instead
 func (s *Session) Login(stuNum string, phoneNum string, passwordHash string) (e error) {
 	return s.LoginEx(stuNum, phoneNum, passwordHash, defaultSchoolId)
 }

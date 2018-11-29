@@ -12,17 +12,9 @@ var loginErr error
 
 func init() {
 	session = CreateSession()
-	loginErr = session.Login("021640302", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	loginErr = session.LoginEx("1824354205", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 69)
 }
-func TestLogin(t *testing.T) {
-	session = CreateSession()
-	loginErr = session.Login("021640302", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
-	if loginErr != nil {
-		t.Log(loginErr.Error())
-		t.Fatalf("%v", loginErr)
-	}
-	t.Logf("%+v", session)
-
+func TestLoginEx(t *testing.T) {
 	session = CreateSession()
 	loginErr = session.LoginEx("1824354205", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 69)
 	if loginErr != nil {
