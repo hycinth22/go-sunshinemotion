@@ -38,19 +38,21 @@ const (
 	getSportResultURL = server + "/sunShine_Sports-server1/xtGetSportResult.action"
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
-	schoolId = "60"
+	defaultSchoolId = 60
 )
 
 func CreateSession() *Session {
 	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent}
 }
-
 func (s *Session) Login(stuNum string, phoneNum string, passwordHash string) (e error) {
+	return s.LoginEx(stuNum, phoneNum, passwordHash, defaultSchoolId)
+}
+func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, schoolID int64) (e error) {
 	req, err := http.NewRequest(http.MethodPost, loginURL, strings.NewReader(url.Values{
 		"stuNum":   {stuNum},
 		"phoneNum": {phoneNum},
 		"passWd":   {passwordHash},
-		"schoolId": {schoolId},
+		"schoolId": {strconv.FormatInt(schoolID, 10)},
 		"stuId":    {"1"},
 		"token":    {""},
 	}.Encode()))
@@ -135,7 +137,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		"beginTime": {toExchangeTimeStr(beginTime)},
 		"endTime":   {toExchangeTimeStr(endTime)},
 		"isValid":   {"1"},
-		"schoolId":  {schoolId},
+		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
 		"xtCode":    {xtCode},
 		"bz":        {bz},
 		"test_time": {toExchangeInt64Str(useTime)},
@@ -197,7 +199,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		"beginTime": {toExchangeTimeStr(beginTime)},
 		"endTime":   {toExchangeTimeStr(endTime)},
 		"isValid":   {"1"},
-		"schoolId":  {schoolId},
+		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
 		"xtCode":    {xtCode},
 		"bz":        {bz},
 		"li":        {li},

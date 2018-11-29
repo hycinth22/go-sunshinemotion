@@ -15,7 +15,16 @@ func init() {
 	loginErr = session.Login("021640302", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
 }
 func TestLogin(t *testing.T) {
-	// 已在init()中执行功能函数，此处仅检测结果
+	session = CreateSession()
+	loginErr = session.Login("021640302", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	if loginErr != nil {
+		t.Log(loginErr.Error())
+		t.Fatalf("%v", loginErr)
+	}
+	t.Logf("%+v", session)
+
+	session = CreateSession()
+	loginErr = session.LoginEx("1824354205", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 69)
 	if loginErr != nil {
 		t.Log(loginErr.Error())
 		t.Fatalf("%v", loginErr)
