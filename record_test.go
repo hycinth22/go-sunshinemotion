@@ -2,18 +2,18 @@ package lib
 
 import (
 	"testing"
+	"time"
 )
 
-func TestGetXtcode(t *testing.T) {
-	if r := GetXTcode(4290, "2018-06-02 11:13:40"); r != "5438d151" {
-		t.Log(r)
-		t.FailNow()
-	}
-}
 
-func TestGetXtcodeV2codeV2(t *testing.T) {
-	if r := GetXTcodeV2(4502, "2018-09-15 11:01:24.7", "2.520"); r != "61b1c85e" {
-		t.Log(r)
-		t.FailNow()
+func TestSmartCreateRecords(t *testing.T) {
+	records := SmartCreateRecords(0, &LimitParams{
+		RandDistance:        Float64Range{2.6, 4.0},
+		LimitSingleDistance: Float64Range{2.0, 4.0},
+		LimitTotalDistance:  Float64Range{2.0, 5.0},
+		MinuteDuration:      IntRange{11, 20},
+	}, 5, time.Now())
+	for _, r := range records {
+		t.Logf("%+v", r)
 	}
 }

@@ -5,6 +5,7 @@ type LimitParams struct {
 	RandDistance Float64Range
 	// 限制区间（目标系统限制的单次距离区间）
 	LimitSingleDistance Float64Range
+	// DEPRECATED
 	// 限制区间（目标系统限制的总距离区间）
 	LimitTotalDistance Float64Range
 	// 每条记录的时间区间
