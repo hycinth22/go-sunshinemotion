@@ -20,6 +20,8 @@ type Session struct {
 	UserInfo           UserInfo
 	UserAgent          string
 	LimitParams        *LimitParams
+	PhoneIMEI          string
+	PhoneModel         string
 }
 type httpError struct {
 	msg     string
@@ -42,7 +44,7 @@ const (
 )
 
 func CreateSession() *Session {
-	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent}
+	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent, PhoneIMEI: GenerateIMEI(), PhoneModel: RandModel()}
 }
 
 // DEPRECATED: use LoginEx instead
@@ -66,6 +68,8 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	req.Header.Set("User-Agent", s.UserAgent)
 	req.Header.Set("UserID", "0")
 	req.Header.Set("crack", "0")
+	req.Header["UserID"] = []string{"0"}
+	req.Header["crack"] = []string{"0"}
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -150,19 +154,19 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
-	req.Header.Set("TokenID", s.TokenID)
-	req.Header.Set("app", "com.ccxyct.sunshinemotion")
-	req.Header.Set("ver", "2.2.2")
-	req.Header.Set("device", "Android,24,7.0")
-	req.Header.Set("model", "Android")
-	req.Header.Set("screen", "1080x1920")
-	req.Header.Set("imei", "")
-	req.Header.Set("imsi", "")
-	req.Header.Set("crack", "0")
-	req.Header.Set("latitude", "0.0")
-	req.Header.Set("longitude", "0.0")
 	req.Header.Set("User-Agent", s.UserAgent)
+	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
+	req.Header["TokenID"] = []string{s.TokenID}
+	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
+	req.Header["ver"] = []string{"2.2.2"}
+	req.Header["device"] = []string{"Android,25,7.1.2"}
+	req.Header["model"] = []string{s.PhoneModel}
+	req.Header["screen"] = []string{"1080x1920"}
+	req.Header["imei"] = []string{s.PhoneIMEI}
+	req.Header["imsi"] = []string{"1234567890"}
+	req.Header["crack"] = []string{"0"}
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -211,19 +215,19 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
-	req.Header.Set("TokenID", s.TokenID)
-	req.Header.Set("app", "com.ccxyct.sunshinemotion")
-	req.Header.Set("ver", "2.2.2")
-	req.Header.Set("device", "Android,24,7.0")
-	req.Header.Set("model", "Android")
-	req.Header.Set("screen", "1080x1920")
-	req.Header.Set("imei", "")
-	req.Header.Set("imsi", "")
-	req.Header.Set("crack", "0")
-	req.Header.Set("latitude", "0.0")
-	req.Header.Set("longitude", "0.0")
 	req.Header.Set("User-Agent", s.UserAgent)
+	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
+	req.Header["TokenID"] = []string{s.TokenID}
+	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
+	req.Header["ver"] = []string{"2.2.2"}
+	req.Header["device"] = []string{"Android,25,7.1.2"}
+	req.Header["model"] = []string{s.PhoneModel}
+	req.Header["screen"] = []string{"1080x1920"}
+	req.Header["imei"] = []string{s.PhoneIMEI}
+	req.Header["imsi"] = []string{"1234567890"}
+	req.Header["crack"] = []string{"0"}
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -269,9 +273,9 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", s.UserAgent)
-	req.Header.Set("UserID", strconv.FormatInt(s.UserID, 10))
-	req.Header.Set("TokenID", s.TokenID)
-	req.Header.Set("crack", "0")
+	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
+	req.Header["TokenID"] = []string{s.TokenID}
+	req.Header["crack"] = []string{"0"}
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
