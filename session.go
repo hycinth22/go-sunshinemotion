@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -41,6 +40,8 @@ const (
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
 	defaultSchoolId = 60
+	defaultIMSI     = "1234567890"
+	defaultDevice   = "Android,25,7.1.2"
 )
 
 func CreateSession() *Session {
@@ -136,7 +137,12 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
-	bz := ""
+	bz := "[" +
+		strconv.FormatInt(time.Now().Unix(), 10) + ", " +
+		defaultDevice + ", " +
+		s.PhoneIMEI + ", " +
+		defaultIMSI +
+		"]"
 	li := GetLi("", bz)
 	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
@@ -145,7 +151,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		"isValid":   {"1"},
 		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
 		"xtCode":    {xtCode},
-		"bz":        {bz},
+		"bz":        {EncodeBZ(bz)},
 		"test_time": {toExchangeInt64Str(useTime)},
 		"li":        {li},
 	}.Encode()))
@@ -159,11 +165,11 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
 	req.Header["ver"] = []string{"2.2.2"}
-	req.Header["device"] = []string{"Android,25,7.1.2"}
+	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{"1234567890"}
+	req.Header["imsi"] = []string{defaultIMSI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -198,7 +204,12 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
-	bz := ""
+	bz := "[" +
+		strconv.FormatInt(time.Now().Unix(), 10) + ", " +
+		defaultDevice + ", " +
+		s.PhoneIMEI + ", " +
+		defaultIMSI +
+		"]"
 	li := GetLi(xtCode, bz)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
@@ -207,7 +218,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		"isValid":   {"1"},
 		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
 		"xtCode":    {xtCode},
-		"bz":        {bz},
+		"bz":        {EncodeBZ(bz)},
 		"li":        {li},
 	}.Encode()))
 	if err != nil {
@@ -220,11 +231,11 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
 	req.Header["ver"] = []string{"2.2.2"}
-	req.Header["device"] = []string{"Android,25,7.1.2"}
+	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{"1234567890"}
+	req.Header["imsi"] = []string{defaultIMSI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -322,34 +333,4 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	r.Qualified = httpSporstResult.Qualified
 	r.Distance = httpSporstResult.Result
 	return r, nil
-}
-
-func GetXTcodeV3(userId int64, beginTime string, distance string) string {
-	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + HashSalt
-	key := MD5String(phrase)
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[15])
-	xtCode.WriteByte(key[24])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[17])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[23])
-	return aes_ecb_pkcs5padding_encrypt(xtCode.String())
-}
-
-func GetLi(p0, p1 string) string {
-	phrase := p0 + p1 + HashSalt
-	key := MD5String(phrase)
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[11])
-	xtCode.WriteByte(key[20])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[14])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[21])
-	return aes_ecb_pkcs5padding_encrypt(xtCode.String())
 }

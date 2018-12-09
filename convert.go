@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -23,4 +24,13 @@ func fromExchangeDistanceStr(s string) (float64, error) {
 
 func toExchangeInt64Str(n int64) string {
 	return strconv.FormatInt(n, 10)
+}
+
+func BytesToHEXString(bytes []byte) string {
+	return fmt.Sprintf("%X", bytes)
+}
+
+func HEXStringToBytes(hex string) (bytes []byte, err error) {
+	_, err = fmt.Sscanf(hex, "%X", &bytes)
+	return
 }
