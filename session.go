@@ -132,7 +132,7 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
-	bz := "[]"
+	bz := ""
 	li := GetLi("", bz)
 	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
@@ -194,7 +194,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
-	bz := "[]"
+	bz := ""
 	li := GetLi(xtCode, bz)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
 		"results":   {toExchangeDistanceStr(distance)},
