@@ -138,7 +138,7 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
 	bz := "[" +
-		strconv.FormatInt(time.Now().Unix(), 10) + ", " +
+		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
 		defaultIMSI +
@@ -205,7 +205,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
 	bz := "[" +
-		strconv.FormatInt(time.Now().Unix(), 10) + ", " +
+		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
 		defaultIMSI +
