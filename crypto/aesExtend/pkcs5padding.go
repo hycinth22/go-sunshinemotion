@@ -2,10 +2,10 @@ package aesExtend
 
 import "bytes"
 
-func PKCS5Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
+func PKCS5Padding(cipherText []byte, blockSize int) []byte {
+	padding := blockSize - len(cipherText)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
+	return append(cipherText, padtext...)
 }
 
 func PKCS5UnPadding(origData []byte) []byte {

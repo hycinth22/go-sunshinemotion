@@ -1,130 +1,83 @@
-package lib
+package sunshinemotion
 
 import (
-	"bytes"
-	"fmt"
-	"log"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/inkedawn/go-sunshinemotion/crypto"
 )
 
+// an record which represents a sport progress.
 type Record struct {
-	UserID    int64
+	UserID    uint
 	Distance  float64
 	BeginTime time.Time
 	EndTime   time.Time
-	xtcode    string
+	Remark    Remark
 }
 
-func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64, beforeTime time.Time) []Record {
-	records := make([]Record, 0, int(distance/3))
-	remain := distance
-	lastBeginTime := beforeTime
-	for remain > 0 {
-		var singleDistance float64
-		// 范围取随机
-		if remain > limitParams.RandDistance.Max {
-			// 检查是否下一条可能丢弃较大的距离
-			// 防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
-			if remain-limitParams.RandDistance.Max > limitParams.LimitSingleDistance.Min {
-				// 正常取随机值
-				singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
-			} else {
-				// 随机选择本条为最小限制距离，或者为下一条预留最小限制距离
-				singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[randRange(0, 1)]
-			}
-		} else if remain >= limitParams.LimitSingleDistance.Min && remain <= limitParams.LimitSingleDistance.Max {
-			// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
-			singleDistance = remain
-		} else {
-			// 剩余较多，但不符合限制区间无法再生成一条合法记录，输出提醒
-			if remain > 0.5 {
-				fmt.Println("提醒：由于随机原则与区间限制的冲突，丢弃了较大的距离", remain, "公里，考虑重新设定距离值。")
-			}
-			break
-		}
+// Remark need to meet some requirements, otherwise illegal.
+// see MakeBasicRemark() for details.
+type Remark struct {
+	Time                               time.Time
+	DeviceName, DeviceIMEI, DeviceIMSI string
 
-		// 小数部分随机化 -0.09 ~ 0.09
-		tinyPart := float64(randRange(0, 99999)) / 1000000
-		switch r := singleDistance + tinyPart; {
-		case r < limitParams.LimitSingleDistance.Min:
-			singleDistance = limitParams.LimitSingleDistance.Min
-			/*case r > userInfo.LimitParams.LimitSingleDistance.Max:
-			singleDistance = userInfo.LimitParams.LimitSingleDistance.Max
-			*/
-		default:
-			singleDistance += tinyPart
-		}
+	Xposed, MockLocation, Root bool
+	Custom                     []string
+}
 
-		// 检测结果合法性，由于TinyPart允许上下浮动0.1
-		if singleDistance < limitParams.LimitSingleDistance.Min-0.1 || singleDistance > limitParams.LimitSingleDistance.Max+0.1 {
-			// 丢弃不合法距离
-			log.Println("Drop distance: ", singleDistance)
-			continue
-		}
-
-		var randomDuration time.Duration
-		// 时间间隔随机化
-		randomDuration = time.Duration(randRange(limitParams.MinuteDuration.Min, limitParams.MinuteDuration.Max)) * time.Minute
-		randomDuration += time.Duration(randRange(0, 60)) * time.Second // 时间间隔秒级随机化
-
-		endTime := lastBeginTime.Add(-time.Duration(randRange(1, 30)) * time.Minute)
-		endTime = endTime.Add(-time.Duration(randRange(1, 60)) * time.Second)
-		beginTime := endTime.Add(-randomDuration)
-
-		records = append(records, Record{
-			UserID:    userID,
-			Distance:  singleDistance,
-			BeginTime: beginTime,
-			EndTime:   endTime,
-			xtcode:    GetXTcodeV3(userID, toExchangeTimeStr(beginTime), toExchangeDistanceStr(singleDistance)),
-		})
-
-		remain -= singleDistance - tinyPart
-		lastBeginTime = beginTime
+// The Remark is an Ordered String Group,
+// its First element MUST be the Unix Timestamp (seconds),
+// Second element MUST be the Device Name,
+// Third element MUST be the Device IMEI,
+// Forth element MUST be the Device IMSI,
+// and the rest elements are other flags.
+//
+// Finally it will be transformed into a string in a specific format.
+// you can call remark.String() to perform the transformation, see it for transformation details.
+func MakeBasicRemark(time time.Time, device *Device) Remark {
+	return Remark{
+		time,
+		device.Name, device.IMEI, device.IMSI,
+		false, false, false,
+		nil,
 	}
-	nRecord := len(records)
-	reverse := make([]Record, nRecord)
-	for i := 0; i < nRecord; i++ {
-		reverse[i] = records[nRecord-i-1]
-	}
-	return reverse
-}
-func CreateRecord(userID int64, distance float64, beforeTime time.Time, duration time.Duration) Record {
-	r := Record{Distance: distance,
-		BeginTime: beforeTime.Add(-duration),
-		EndTime:   beforeTime,
-	}
-	r.xtcode = GetXTcodeV3(userID, toExchangeTimeStr(r.BeginTime), toExchangeDistanceStr(r.Distance))
-	return r
 }
 
-func GetXTcode(userId int64, beginTime string) string {
-	key := MD5String(strconv.FormatInt(userId, 10) + beginTime + "stlchang")
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[15])
-	xtCode.WriteByte(key[24])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[17])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[23])
-	return xtCode.String()
+func (r *Remark) fieldsStringGroup() []string {
+	fields := r.fieldsStringGroup()
+	timestamp := strconv.FormatInt(r.Time.Unix(), 10)
+	fields = append(fields, timestamp)
+	fields = append(fields, r.DeviceName)
+	fields = append(fields, r.DeviceIMEI)
+	fields = append(fields, r.DeviceIMSI)
+	if r.Xposed {
+		fields = append(fields, "xposed")
+	}
+	if r.MockLocation {
+		fields = append(fields, "mocklocation")
+	}
+	if r.Root {
+		fields = append(fields, "root")
+	}
+	fields = append(fields, r.Custom...)
+	return fields
 }
 
-func GetXTcodeV2(userId int64, beginTime string, distance string) string {
-	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + "stlchang"
-	key := MD5String(phrase)
-	log.Println(phrase, key)
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[15])
-	xtCode.WriteByte(key[24])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[17])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[23])
-	return xtCode.String()
+// the transformation result is in the format of java language method java.util.ArrayList.toString()
+// for example: [1546140832, Android,25,7.1.2, 263004834925257, 1234567890]
+func (r *Remark) String() string {
+	var b strings.Builder
+	b.WriteString("[")
+	for _, s := range r.Custom {
+		b.WriteString(s)
+	}
+	b.WriteString("]")
+	return b.String()
+}
+
+// a check code for Record
+func (record *Record) XTcode() string {
+	return crypto.CalcXTcode(record.UserID, toRPCTimeStr(record.BeginTime), toRPCDistanceStr(record.Distance))
 }

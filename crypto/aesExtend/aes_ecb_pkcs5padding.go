@@ -1,3 +1,4 @@
+// package to extend the standard library crypto/aes
 package aesExtend
 
 import (
@@ -5,7 +6,7 @@ import (
 )
 
 // AES-128/ECB/PKCS5Padding
-func AES_ECB_PKCS5PaddingEncrypt(raw []byte, key []byte) ([]byte, error) {
+func AesEcbPkcs5PaddingEncrypt(raw []byte, key []byte) ([]byte, error) {
 	aesCipherBlock, err := aes.NewCipher(key[:16])
 	if err != nil {
 		return nil, err
@@ -18,7 +19,7 @@ func AES_ECB_PKCS5PaddingEncrypt(raw []byte, key []byte) ([]byte, error) {
 }
 
 // AES-128/ECB/PKCS5Padding
-func AES_ECB_PKCS5PaddingDecrypt(raw []byte, key []byte) ([]byte, error) {
+func AesEcbPkcs5PaddingDecrypt(raw []byte, key []byte) ([]byte, error) {
 	aesCipherBlock, err := aes.NewCipher(key[:16])
 	if err != nil {
 		return nil, err
