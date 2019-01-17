@@ -27,24 +27,78 @@ func TestMakeBasicRemark(t *testing.T) {
 }
 
 func TestRemark_String(t *testing.T) {
-	t.SkipNow() // TODO: Implement me
 	const timeLayout = "2006-01-02 15:04:05"
+	type testCase struct {
+		name         string
+		remark       Remark
+		remarkString string
+	}
 	tests := []struct {
 		name         string
 		remark       Remark
 		remarkString string
 	}{
-		{"Basic Remark",
-			Remark{},
-			""},
+		{
+			"Basic Remark",
+			Remark{
+				Time:       time.Unix(0, 0),
+				DeviceName: "TestDevice",
+				DeviceIMEI: "263004834925257",
+				DeviceIMSI: "1234567890",
+			},
+			"[0, TestDevice, 263004834925257, 1234567890]",
+		},
+		{
+			"Cheated Remark",
+			Remark{
+				Time:         time.Unix(1547705586, 0),
+				DeviceName:   "TestDevice",
+				DeviceIMEI:   "263004834925257",
+				DeviceIMSI:   "1234567890",
+				Xposed:       true,
+				MockLocation: true,
+				Root:         true,
+			},
+			"[1547705586, TestDevice, 263004834925257, 1234567890, xposed, mocklocation, root]",
+		},
+		{
+			"Custom Remark",
+			Remark{
+				Time:       time.Unix(1547705599, 0),
+				DeviceName: "TestDevice",
+				DeviceIMEI: "263004834925257",
+				DeviceIMSI: "1234567890",
+				Custom: []string{
+					"CustomField1",
+					"MyField2",
+				},
+			},
+			"[1547705599, TestDevice, 263004834925257, 1234567890, CustomField1, MyField2]",
+		},
+		{
+			"Cheated Custom Remark",
+			Remark{
+				Time:         time.Unix(1547705606, 0),
+				DeviceName:   "TestDevice",
+				DeviceIMEI:   "263004834925257",
+				DeviceIMSI:   "1234567890",
+				Xposed:       true,
+				MockLocation: true,
+				Root:         true,
+				Custom: []string{
+					"CustomField1",
+					"MyField2",
+				},
+			},
+			"[1547705606, TestDevice, 263004834925257, 1234567890, xposed, mocklocation, root, CustomField1, MyField2]",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			expect := test.remarkString
 			actual := test.remark.String()
 			if actual != expect {
-				t.Log("incorrect result: ", actual)
-				t.Fail()
+				t.Fatal("incorrect result: ", actual)
 			}
 		})
 	}

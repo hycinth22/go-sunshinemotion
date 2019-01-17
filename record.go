@@ -27,6 +27,12 @@ type Remark struct {
 	Custom                     []string
 }
 
+const (
+	remark_xposed       = "xposed"
+	remark_mockLocation = "mocklocation"
+	remark_root         = "root"
+)
+
 // The Remark is an Ordered String Group,
 // its First element MUST be the Unix Timestamp (seconds),
 // Second element MUST be the Device Name,
@@ -46,20 +52,21 @@ func MakeBasicRemark(time time.Time, device *Device) Remark {
 }
 
 func (r *Remark) fieldsStringGroup() []string {
-	fields := r.fieldsStringGroup()
+	fields := make([]string, 0, 4)
 	timestamp := strconv.FormatInt(r.Time.Unix(), 10)
 	fields = append(fields, timestamp)
 	fields = append(fields, r.DeviceName)
 	fields = append(fields, r.DeviceIMEI)
 	fields = append(fields, r.DeviceIMSI)
+	// the order is not changeable
 	if r.Xposed {
-		fields = append(fields, "xposed")
+		fields = append(fields, remark_xposed)
 	}
 	if r.MockLocation {
-		fields = append(fields, "mocklocation")
+		fields = append(fields, remark_mockLocation)
 	}
 	if r.Root {
-		fields = append(fields, "root")
+		fields = append(fields, remark_root)
 	}
 	fields = append(fields, r.Custom...)
 	return fields
@@ -68,10 +75,14 @@ func (r *Remark) fieldsStringGroup() []string {
 // the transformation result is in the format of java language method java.util.ArrayList.toString()
 // for example: [1546140832, Android,25,7.1.2, 263004834925257, 1234567890]
 func (r *Remark) String() string {
+	fileds := r.fieldsStringGroup()
 	var b strings.Builder
 	b.WriteString("[")
-	for _, s := range r.Custom {
+	for i, s := range fileds {
 		b.WriteString(s)
+		if i != len(fileds)-1 {
+			b.WriteString(", ")
+		}
 	}
 	b.WriteString("]")
 	return b.String()
