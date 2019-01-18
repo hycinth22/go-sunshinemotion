@@ -15,10 +15,11 @@ import (
 )
 
 type Session struct {
-	device               *Device
-	token                *Token
-	userSportResultCache userSportResultCache
-	httpClient           *http.Client
+	device           *Device
+	token            *Token
+	httpClient       *http.Client
+	userInfo         UserInfo
+	sportResultCache sportResultCache
 }
 
 const (
@@ -29,21 +30,25 @@ const (
 const ServiceSuccessStatus = 1
 
 func CreateSession(device *Device, token *Token) *Session {
-	return &Session{
+	s := &Session{
 		device: device,
 		token:  token,
-		userSportResultCache: userSportResultCache{
-			ExpireDuration: 1 * time.Hour,
-			FetchFunction: func() (updated UserSportResult, err error) {
-				return UserSportResult{}, nil
-			},
-		},
-		httpClient: &http.Client{
-			Transport: &sessionTransport{
-				device: device,
-			},
+	}
+	httpClient := &http.Client{
+		Transport: &sessionTransport{
+			device: device,
 		},
 	}
+	sportResultCache := sportResultCache{
+		ExpireDuration: 15 * time.Second,
+	}
+	sportResultCache.Update = func() (err error) {
+		_, err = s.GetUserSportResult()
+		return errors.New("failed to get results for cache update: " + err.Error())
+	}
+	s.httpClient = httpClient
+	s.sportResultCache = sportResultCache
+	return s
 }
 
 // request a token and use it in the session automatically.
@@ -90,7 +95,7 @@ func (session *Session) RequestToken(schoolID uint64, username string, passwordH
 		UserID             uint
 		TokenID            string
 		UserExpirationTime int64
-		// UserInfo           UserInfo
+		UserInfo           UserInfo
 	}
 	err = json.NewDecoder(resp.Body).Decode(&loginResult)
 	if err != nil {
@@ -103,7 +108,7 @@ func (session *Session) RequestToken(schoolID uint64, username string, passwordH
 			message: loginResult.ErrorMessage,
 		}
 	}
-
+	session.userInfo = loginResult.UserInfo
 	return &Token{
 		TokenID:    loginResult.TokenID,
 		UserID:     loginResult.UserID,
@@ -282,12 +287,36 @@ func (session *Session) GetUserSportResult() (UserSportResult, error) {
 	if err != nil {
 		return UserSportResult{}, fmt.Errorf("reslove Failed. %s", err.Error())
 	}
-	return UserSportResult{
+	r := UserSportResult{
 		UserID:            responseResult.UserID,
 		Year:              responseResult.Year,
 		Term:              responseResult.Term,
 		QualifiedDistance: responseResult.Qualified,
 		RunDistance:       responseResult.Result,
 		LastTime:          lastTime,
-	}, nil
+	}
+	// put UserSportResult into cache
+	{
+		var cacheTime time.Time
+		respTimeStr := resp.Header.Get("Date")
+		if respTimeStr != "" {
+			// try to use response date as cacheTime
+			cacheTime, _, err = parseHTTPDate(respTimeStr)
+			if err != nil {
+				// use now as cacheTime
+				cacheTime = time.Now()
+			}
+		} else {
+			// use now as cacheTime
+			cacheTime = time.Now()
+		}
+		session.sportResultCache.Put(r, cacheTime)
+	}
+	return r, nil
+}
+
+// userInfo is only updated when UpdateToken/RequestToken.
+// since userInfo may be obsoleted..
+func (session *Session) GetUserInfo() UserInfo {
+	return session.userInfo
 }
