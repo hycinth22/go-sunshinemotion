@@ -27,12 +27,6 @@ func TestMakeBasicRemark(t *testing.T) {
 }
 
 func TestRemark_String(t *testing.T) {
-	const timeLayout = "2006-01-02 15:04:05"
-	type testCase struct {
-		name         string
-		remark       Remark
-		remarkString string
-	}
 	tests := []struct {
 		name         string
 		remark       Remark
