@@ -77,9 +77,9 @@ func TestCalcXTcode(t *testing.T) {
 		xtcode    string
 	}{
 		{"empty case", 0, "", "", "41B79A796B6B16A7701F70684D0A3A6E"},
-		{"normal case 1", 1234, "2006-01-02 15:04:05", "3.41", "EB7895DF2007181B67C734AA4EE63998"},
-		{"normal case 2", 5678, "2017-02-03 16:05:06", "4.52", "757F0B91B1117CF126B9A95B73A5EAB8"},
-		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.63", "4686B76C3E5D1255A346CAFD60439DB5"},
+		{"normal case 1", 1234, "2006-01-02 15:04:05", "3.410", "ED9335F08B363EF8C9954302EE84547F"},
+		{"normal case 2", 5678, "2017-02-03 16:05:06", "4.520", "38A2FDC3A89C6200CE41BF0639F145ED"},
+		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.630", "1630BC477C9BB0150773434F9A07C0DD"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

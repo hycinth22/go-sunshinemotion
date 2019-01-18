@@ -99,13 +99,42 @@ func TestRemark_String(t *testing.T) {
 }
 
 func TestRecord_XTcode(t *testing.T) {
-	t.SkipNow() // TODO: Implement me
 	tests := []struct {
 		name   string
 		record Record
 		xtcode string
 	}{
-		// TODO: test cases
+		{"empty case",
+			Record{
+				UserID:    0,
+				BeginTime: time.Unix(0, 0),
+				Distance:  0.0},
+			"146618DF0D8DF1DC698E0D70FF5F7F4B",
+		},
+		{"normal case 1",
+			Record{
+				UserID:    1234,
+				BeginTime: time.Date(2006, 1, 2, 15, 4, 5, 0, time.Local),
+				Distance:  3.410,
+			},
+			"ED9335F08B363EF8C9954302EE84547F",
+		},
+		{"normal case 2",
+			Record{
+				UserID:    5678,
+				BeginTime: time.Date(2017, 2, 3, 16, 5, 6, 0, time.Local),
+				Distance:  4.520,
+			},
+			"38A2FDC3A89C6200CE41BF0639F145ED",
+		},
+		{"normal case 3",
+			Record{
+				UserID:    9012,
+				BeginTime: time.Date(2028, 3, 4, 17, 6, 7, 0, time.Local),
+				Distance:  5.630,
+			},
+			"1630BC477C9BB0150773434F9A07C0DD",
+		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
