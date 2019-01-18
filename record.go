@@ -75,12 +75,12 @@ func (r *Remark) fieldsStringGroup() []string {
 // the transformation result is in the format of java language method java.util.ArrayList.toString()
 // for example: [1546140832, Android,25,7.1.2, 263004834925257, 1234567890]
 func (r *Remark) String() string {
-	fileds := r.fieldsStringGroup()
+	fields := r.fieldsStringGroup()
 	var b strings.Builder
 	b.WriteString("[")
-	for i, s := range fileds {
+	for i, s := range fields {
 		b.WriteString(s)
-		if i != len(fileds)-1 {
+		if i != len(fields)-1 {
 			b.WriteString(", ")
 		}
 	}
