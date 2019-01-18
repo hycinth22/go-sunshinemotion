@@ -5,28 +5,31 @@ import (
 )
 
 type Device struct {
-	Name      string
-	Model     string
-	Screen    string
-	IMEI      string
-	IMSI      string
-	UserAgent string
+	Name      string // 设备名称
+	Model     string // 设备型号
+	Screen    string // 设备屏幕
+	IMEI      string // 设备IMEI，15位（不包括SVN）
+	IMSI      string // 设备IMSI，15位或空值常量emptyIMSI
+	UserAgent string // 设备发出HTTP请求时的User-Agent
 	// Note: So far only for scalability
 	// the official app (com.ccxyct.sunshinemotion v2.2.2 and older version)
 	// always use Latitude "0.0" and Longitude "0.0"
-	Location
+	Location // 设备地理位置
 }
 
+// 地理位置
 type Location struct {
 	Latitude  string
 	Longitude string
 }
 
+const emptyIMSI = "1234567890"
+
 // 随机生成一个合法设备。
 // 部分字段可能会是固定值。
 func GenerateDevice() *Device {
 	const (
-		defaultIMSI       = "1234567890"
+		defaultIMSI       = emptyIMSI
 		defaultDeviceName = "Android,25,7.1.2"
 		defaultScreen     = "1080x1920"
 		defaultLatitude   = "0.0"
