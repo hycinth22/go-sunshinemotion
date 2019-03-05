@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -10,13 +11,58 @@ import (
 
 type Record struct {
 	UserID    int64
+	SchoolID  int64
 	Distance  float64
 	BeginTime time.Time
 	EndTime   time.Time
 	xtcode    string
 }
 
-func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64, beforeTime time.Time) []Record {
+type XTJsonSportData struct {
+	Result       string `json:"results"`
+	StartTimeStr string `json:"beginTime"`
+	EndTimeStr   string `json:"endTime"`
+	IsValid      int    `json:"isValid"`
+	SchoolID     int64  `json:"schoolId"`
+	BZ           string `json:"bz"`
+	XTCode       string `json:"xtCode"`
+}
+type XTJsonSportTestData struct {
+	Result       string `json:"results"`
+	StartTimeStr string `json:"beginTime"`
+	EndTimeStr   string `json:"endTime"`
+	IsValid      int    `json:"isValid"`
+	SchoolID     int64  `json:"schoolId"`
+	BZ           string `json:"bz"`
+	XTCode       string `json:"xtCode"`
+	TestTime     int64  `json:"test_time"`
+}
+
+func (r XTJsonSportData) ToJSON() string {
+	j, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+}
+
+func (r XTJsonSportData) GetStrpa() string {
+	return EncodeSportData(r.ToJSON())
+}
+
+func (r XTJsonSportTestData) ToJSON() string {
+	j, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+}
+
+func (r XTJsonSportTestData) GetStrpa() string {
+	return EncodeSportData(r.ToJSON())
+}
+
+func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, distance float64, beforeTime time.Time) []Record {
 	records := make([]Record, 0, int(distance/3))
 	remain := distance
 	lastBeginTime := beforeTime
@@ -74,6 +120,7 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 
 		records = append(records, Record{
 			UserID:    userID,
+			SchoolID:  schoolID,
 			Distance:  singleDistance,
 			BeginTime: beginTime,
 			EndTime:   endTime,
@@ -90,8 +137,11 @@ func SmartCreateRecords(userID int64, limitParams *LimitParams, distance float64
 	}
 	return reverse
 }
-func CreateRecord(userID int64, distance float64, beforeTime time.Time, duration time.Duration) Record {
-	r := Record{Distance: distance,
+func CreateRecord(userID int64, schoolID int64, distance float64, beforeTime time.Time, duration time.Duration) Record {
+	r := Record{
+		UserID:    userID,
+		SchoolID:  schoolID,
+		Distance:  distance,
 		BeginTime: beforeTime.Add(-duration),
 		EndTime:   beforeTime,
 	}

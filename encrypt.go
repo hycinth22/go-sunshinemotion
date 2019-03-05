@@ -57,7 +57,7 @@ func EncodeBZ(bz string) string {
 	bzBytes := []byte(bz)
 	base64Result := make([]byte, base64.StdEncoding.EncodedLen(len(bzBytes)))
 	base64.StdEncoding.Encode(base64Result, bzBytes)
-	log.Println("bz", bz, "base64:", string(base64Result))
+	log.Println("BZ", bz, "base64:", string(base64Result))
 
 	// AES_ECB_PKCS5PaddingEncrypt
 	e, err := aesExtend.AES_ECB_PKCS5PaddingEncrypt(base64Result, AESKey)
@@ -87,4 +87,13 @@ func DecodeBZ(bz string) (string, error) {
 	}
 	result := base64decoded
 	return string(result[:n]), nil
+}
+
+func EncodeSportData(r string) string {
+	// AES_ECB_PKCS5PaddingEncrypt
+	e, err := aesExtend.AES_ECB_PKCS5PaddingEncrypt([]byte(r), AESKey)
+	if err != nil {
+		panic(err)
+	}
+	return BytesToHEXString(e)
 }

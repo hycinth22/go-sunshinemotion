@@ -33,15 +33,16 @@ func (e httpError) Error() string {
 
 const (
 	server            = "http://www.ccxyct.com:8080"
-	loginURL          = server + "/sunShine_Sports-server1/loginSport.action"
-	uploadDataURL     = server + "/sunShine_Sports-server1/xtUploadData.action"
-	postTestDataURL   = server + "/sunShine_Sports-server1/postTestData.action"
-	getSportResultURL = server + "/sunShine_Sports-server1/xtGetSportResult.action"
+	loginURL          = server + "/sunShine_Sports/loginSport.action"
+	uploadDataURL     = server + "/sunShine_Sports/xtUploadData.action"
+	postTestDataURL   = server + "/sunShine_Sports/postTestData.action"
+	getSportResultURL = server + "/sunShine_Sports/xtGetSportResult.action"
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
 	defaultSchoolId = 60
 	defaultIMSI     = "1234567890"
 	defaultDevice   = "Android,25,7.1.2"
+	appVersion      = "2.2.6"
 )
 
 func CreateSession() *Session {
@@ -130,41 +131,44 @@ func (s *Session) UpdateLimitParams() {
 	}
 }
 func (s *Session) UploadRecord(record Record) (e error) {
-	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.xtcode)
+	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.xtcode, record.SchoolID)
 }
 func (s *Session) UploadTestRecord(record Record) (e error) {
-	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.xtcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()))
+	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.xtcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()), record.SchoolID)
 }
 
-func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64) (e error) {
+func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64, schoolID int64) (e error) {
 	bz := "[" +
 		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
 		defaultIMSI +
 		"]"
-	li := GetLi("", bz)
-	req, err := http.NewRequest(http.MethodPost, postTestDataURL, strings.NewReader(url.Values{
-		"results":   {toExchangeDistanceStr(distance)},
-		"beginTime": {toExchangeTimeStr(beginTime)},
-		"endTime":   {toExchangeTimeStr(endTime)},
-		"isValid":   {"1"},
-		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
-		"xtCode":    {xtCode},
-		"bz":        {EncodeBZ(bz)},
-		"test_time": {toExchangeInt64Str(useTime)},
-		"li":        {li},
-	}.Encode()))
+	j := XTJsonSportTestData{
+		Result:       toExchangeDistanceStr(distance),
+		StartTimeStr: toExchangeTimeStr(beginTime),
+		EndTimeStr:   toExchangeTimeStr(endTime),
+		IsValid:      1,
+		BZ:           bz,
+		XTCode:       xtCode,
+		SchoolID:     schoolID,
+		TestTime:     useTime,
+	}.ToJSON()
+	fmt.Println("j:", j)
+	strpa := EncodeSportData(j)
+	fmt.Println("strpa:", strpa)
+	query := url.Values{"item_param": []string{strpa}}.Encode()
+	fmt.Println("query:", query)
+	req, err := http.NewRequest(http.MethodPost, postTestDataURL+"?"+query, nil)
 	if err != nil {
 		panic(httpError{"HTTP Create Request Failed.", err})
 	}
-
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", s.UserAgent)
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{"2.2.2"}
+	req.Header["ver"] = []string{appVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -203,24 +207,28 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	return nil
 }
 
-func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string) (e error) {
+func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string, schoolId int64) (e error) {
 	bz := "[" +
 		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
 		defaultIMSI +
 		"]"
-	li := GetLi(xtCode, bz)
-	req, err := http.NewRequest(http.MethodPost, uploadDataURL, strings.NewReader(url.Values{
-		"results":   {toExchangeDistanceStr(distance)},
-		"beginTime": {toExchangeTimeStr(beginTime)},
-		"endTime":   {toExchangeTimeStr(endTime)},
-		"isValid":   {"1"},
-		"schoolId":  {strconv.FormatInt(s.UserInfo.InSchoolID, 10)},
-		"xtCode":    {xtCode},
-		"bz":        {EncodeBZ(bz)},
-		"li":        {li},
-	}.Encode()))
+	j := XTJsonSportData{
+		Result:       toExchangeDistanceStr(distance),
+		StartTimeStr: toExchangeTimeStr(beginTime),
+		EndTimeStr:   toExchangeTimeStr(endTime),
+		IsValid:      1,
+		BZ:           bz,
+		XTCode:       xtCode,
+		SchoolID:     schoolId,
+	}.ToJSON()
+	fmt.Println("j:", j)
+	strpa := EncodeSportData(j)
+	fmt.Println("strpa:", strpa)
+	query := url.Values{"item_param": []string{strpa}}.Encode()
+	fmt.Println("query:", query)
+	req, err := http.NewRequest(http.MethodPost, uploadDataURL+"?"+query, nil)
 	if err != nil {
 		panic(httpError{"HTTP Create Request Failed.", err})
 	}
@@ -230,7 +238,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{"2.2.2"}
+	req.Header["ver"] = []string{appVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -307,7 +315,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 		ErrorMessage string
 		LastTime     string  `json:"lastTime"`
 		Qualified    float64 `json:"qualified"`
-		Result       float64 `json:"result"`
+		Result       float64 `json:"Result"`
 		UserID       int64   `json:"userID"`
 		Term         string  `json:"term"`
 		Year         int     `json:"year"`

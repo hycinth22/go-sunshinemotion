@@ -5,9 +5,8 @@ import (
 	"time"
 )
 
-
 func TestSmartCreateRecords(t *testing.T) {
-	records := SmartCreateRecords(0, &LimitParams{
+	records := SmartCreateRecords(0, 0, &LimitParams{
 		RandDistance:        Float64Range{2.6, 4.0},
 		LimitSingleDistance: Float64Range{2.0, 4.0},
 		LimitTotalDistance:  Float64Range{2.0, 5.0},
