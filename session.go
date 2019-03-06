@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 )
 
 type Session struct {
@@ -44,6 +45,16 @@ const (
 	defaultDevice   = "Android,25,7.1.2"
 	appVersion      = "2.2.6"
 )
+
+var (
+	serviceErrorTable = make(map[int64]error)
+	ErrTokenExpired   = errors.New("超时，请重新登录")
+)
+
+func init() {
+	serviceErrorTable[1] = nil
+	serviceErrorTable[2] = ErrTokenExpired
+}
 
 func CreateSession() *Session {
 	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent, PhoneIMEI: GenerateIMEI(), PhoneModel: RandModel()}
@@ -90,6 +101,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 
 	var loginResult struct {
 		Status             int64
+		ErrorMessage       string
 		UserID             int64
 		TokenID            string
 		UserExpirationTime int64
@@ -99,8 +111,11 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	if err != nil {
 		return fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
-	if loginResult.Status != 1 {
-		return fmt.Errorf("resp status not ok. %d", loginResult.Status)
+	err, exist := serviceErrorTable[loginResult.Status]
+	if exist {
+		return err
+	} else if err != nil {
+		return fmt.Errorf("response status %d, message %s", loginResult.Status, loginResult.ErrorMessage)
 	}
 	s.UserID, s.TokenID, s.UserExpirationTime, s.UserInfo = loginResult.UserID, loginResult.TokenID, time.Unix(loginResult.UserExpirationTime/1000, 0), loginResult.UserInfo
 	s.UpdateLimitParams()
@@ -193,16 +208,18 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		panic(fmt.Errorf("HTTP Read Resp Failed! %s", err.Error()))
 	}
 	var uploadResult struct {
-		Status       int
+		Status       int64
 		ErrorMessage string
 	}
 	err = json.Unmarshal(respBytes, &uploadResult)
 	if err != nil {
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
-	const successCode = 1
-	if uploadResult.Status != successCode {
-		return fmt.Errorf("server status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
+	err, exist := serviceErrorTable[uploadResult.Status]
+	if exist {
+		return err
+	} else if err != nil {
+		return fmt.Errorf("response status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
 	}
 	return nil
 }
@@ -264,16 +281,19 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	}
 
 	var uploadResult struct {
-		Status       int
+		Status       int64
 		ErrorMessage string
 	}
 	err = json.Unmarshal(respBytes, &uploadResult)
 	if err != nil {
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
-	const successCode = 1
-	if uploadResult.Status != successCode {
-		return fmt.Errorf("server status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
+	
+	err, exist := serviceErrorTable[uploadResult.Status]
+	if exist {
+		return err
+	} else if err != nil {
+		return fmt.Errorf("response status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
 	}
 	return nil
 }
@@ -311,7 +331,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 		return nil, fmt.Errorf("HTTP Read Resp Failed! %s", err.Error())
 	}
 	var httpSporstResult struct {
-		Status       int
+		Status       int64
 		ErrorMessage string
 		LastTime     string  `json:"lastTime"`
 		Qualified    float64 `json:"qualified"`
@@ -324,10 +344,14 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	if err != nil {
 		return nil, fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
-	const successCode = 1
-	if httpSporstResult.Status != successCode {
-		return nil, fmt.Errorf("server status %d , message: %s", httpSporstResult.Status, httpSporstResult.ErrorMessage)
+	
+	err, exist := serviceErrorTable[httpSporstResult.Status]
+	if exist {
+		return nil, err
+	} else if err != nil {
+		return nil, fmt.Errorf("response status %d , message: %s", httpSporstResult.Status, httpSporstResult.ErrorMessage)
 	}
+	
 	r = new(SportResult)
 	if httpSporstResult.LastTime != "" {
 		r.LastTime, err = fromExchangeTimeStr(httpSporstResult.LastTime)
