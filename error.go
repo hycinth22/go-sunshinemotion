@@ -9,7 +9,7 @@ type serviceError struct {
 }
 
 func (e serviceError) Error() string {
-	return fmt.Sprintf(`Server Status %d, message "%s"`, e.status, e.message)
+	return fmt.Sprintf(`Service Status %d, message "%s"`, e.status, e.message)
 }
 
 type networkError struct {

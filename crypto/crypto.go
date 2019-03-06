@@ -68,24 +68,37 @@ func EncryptBZ(bz string) string {
 	base64.StdEncoding.Encode(base64Text, bzBytes)
 	log.Println("bz", bz, "base64:", string(base64Text))
 	// AES128-ECB-PKCS5Padding Encrypt
-	result := encrypter.CryptBlocks(base64Text)
-	return bytesToHexString(result)
+	return EncryptString(string(base64Text))
 }
 
 func DecryptBZ(bz string) (string, error) {
 	// AES128-ECB-PKCS5Padding Decrypt
-	origin, err := hexStringToBytes(bz)
+	t, err := DecryptString(bz)
 	if err != nil {
 		return "", err
 	}
-	base64Bytes := decrypter.CryptBlocks(origin)
 	// Base64 Decode
-	lenBase64 := len(base64Bytes)
+	tt := []byte(t)
+	lenBase64 := len(tt)
 	base64decoded := make([]byte, base64.StdEncoding.DecodedLen(lenBase64))
-	n, err := base64.StdEncoding.Decode(base64decoded, base64Bytes)
+	n, err := base64.StdEncoding.Decode(base64decoded, tt)
 	if err != nil {
-		return "", errors.New("Decode Base64 Data" + fmt.Sprint(string(base64Bytes)) + ": " + err.Error())
+		return "", errors.New("Decode Base64 Data" + fmt.Sprint(tt) + ": " + err.Error())
 	}
 	result := base64decoded
 	return string(result[:n]), nil
+}
+
+// AES128-ECB-PKCS5Padding Algorithm
+func EncryptString(raw string) string {
+	return bytesToHexString(encrypter.CryptBlocks([]byte(raw)))
+}
+
+// AES128-ECB-PKCS5Padding Algorithm
+func DecryptString(raw string) (string, error) {
+	data, err := hexStringToBytes(raw)
+	if err != nil {
+		return "", errors.New("Parsing Encrypted String in HEX format Failed" + err.Error())
+	}
+	return string(decrypter.CryptBlocks(data)), nil
 }

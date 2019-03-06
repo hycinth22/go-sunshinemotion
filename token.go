@@ -5,21 +5,29 @@ import (
 	"time"
 )
 
-// Use only UserID enough to distinguish different users,
-// but SchoolID is sometimes needed as a extra information, this's why it's in Token struct.
 type Token struct {
 	TokenID    string
-	UserID     uint
-	SchoolID   uint64
 	ExpireTime time.Time
+
+	// extra information about the token owner
+	UserID   uint   // enough to distinguish different users,
+	SchoolID uint64 // sometimes needed
 }
 
-var ErrTokenExpired = errors.New("token has expired")
+var (
+	ErrTokenInvalid = errors.New("登录状态无效")
+	ErrTokenExpired = errors.New("登录已过期")
+)
 
-// only check if token is valid in format.
+// only check if token is in valid format.
 // it does not send any network request to verify.
-func (token *Token) Valid() bool {
+func (token *Token) ValidFormat() bool {
 	return token != nil &&
-		len(token.TokenID) > 0 &&
-		time.Now().Before(token.ExpireTime)
+		len(token.TokenID) > 0
+}
+
+// only check if token exceed its ExpireTime.
+// it does not send any network request to verify.
+func (token *Token) Expired() bool {
+	return time.Now().After(token.ExpireTime)
 }

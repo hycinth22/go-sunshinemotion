@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestToken_Valid(t *testing.T) {
+func TestToken_ValidFormat(t *testing.T) {
 	tests := []struct {
 		name  string
 		token Token
@@ -13,15 +13,6 @@ func TestToken_Valid(t *testing.T) {
 	}{
 		{"empty token",
 			Token{},
-			false,
-		},
-		{"expired token",
-			Token{
-				TokenID:    "tokenID",
-				UserID:     1111,
-				SchoolID:   60,
-				ExpireTime: time.Now().AddDate(-1, 0, 0),
-			},
 			false,
 		},
 		{"valid token",
@@ -36,7 +27,43 @@ func TestToken_Valid(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if test.token.Valid() != test.valid {
+			if test.token.ValidFormat() != test.valid {
+				t.Log(test)
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestToken_Expired(t *testing.T) {
+	tests := []struct {
+		name  string
+		token Token
+		valid bool
+	}{
+		{"expired token",
+			Token{
+				TokenID:    "tokenID",
+				UserID:     1111,
+				SchoolID:   60,
+				ExpireTime: time.Now().AddDate(-1, 0, 0),
+			},
+			true,
+		},
+		{"valid token",
+			Token{
+				TokenID:    "tokenID",
+				UserID:     1111,
+				SchoolID:   60,
+				ExpireTime: time.Now().AddDate(1, 0, 0),
+			},
+			false,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.token.Expired() != test.valid {
+				t.Log(test)
 				t.Fail()
 			}
 		})

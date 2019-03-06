@@ -1,6 +1,7 @@
 package sunshinemotion
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 // an record which represents a sport progress.
 type Record struct {
 	UserID    uint
+	SchoolID  int64
 	Distance  float64
 	BeginTime time.Time
 	EndTime   time.Time
@@ -88,7 +90,77 @@ func (r *Remark) String() string {
 	return b.String()
 }
 
-// a check code for Record
+// the checksum code for the Record
 func (record *Record) XTcode() string {
 	return crypto.CalcXTcode(record.UserID, toRPCTimeStr(record.BeginTime), toRPCDistanceStr(record.Distance))
+}
+
+// TODO: here require function annotation
+// TODO: require code test
+func (record *Record) JSON() string {
+	type XTJsonSportData struct {
+		Result       string `json:"results"`
+		StartTimeStr string `json:"beginTime"`
+		EndTimeStr   string `json:"endTime"`
+		IsValid      int    `json:"isValid"`
+		SchoolID     int64  `json:"schoolId"`
+		BZ           string `json:"bz"`
+		XTCode       string `json:"xtCode"`
+	}
+	t := XTJsonSportData{
+		Result:       toRPCDistanceStr(record.Distance),
+		StartTimeStr: toRPCTimeStr(record.BeginTime),
+		EndTimeStr:   toRPCTimeStr(record.EndTime),
+		IsValid:      1,
+		SchoolID:     record.SchoolID,
+		BZ:           record.Remark.String(),
+		XTCode:       record.XTcode(),
+	}
+	j, err := json.Marshal(t)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+}
+
+// TODO: here require function annotation
+// TODO: require code test
+func (record *Record) TestJSON() string {
+	type XTJsonSportTestData struct {
+		Result       string `json:"results"`
+		StartTimeStr string `json:"beginTime"`
+		EndTimeStr   string `json:"endTime"`
+		IsValid      int    `json:"isValid"`
+		SchoolID     int64  `json:"schoolId"`
+		BZ           string `json:"bz"`
+		XTCode       string `json:"xtCode"`
+		TestTime     int64  `json:"test_time"`
+	}
+	t := XTJsonSportTestData{
+		Result:       toRPCDistanceStr(record.Distance),
+		StartTimeStr: toRPCTimeStr(record.BeginTime),
+		EndTimeStr:   toRPCTimeStr(record.EndTime),
+		IsValid:      1,
+		SchoolID:     record.SchoolID,
+		BZ:           record.Remark.String(),
+		XTCode:       record.XTcode(),
+		TestTime:     int64(record.BeginTime.Sub(record.EndTime).Seconds()),
+	}
+	j, err := json.Marshal(t)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+}
+
+// TODO: here require function annotation
+// TODO: require code test
+func (record *Record) EncryptedJSON() string {
+	return crypto.EncryptString(record.JSON())
+}
+
+// TODO: here require function annotation
+// TODO: require code test
+func (record *Record) EncryptedTestJSON() string {
+	return crypto.EncryptString(record.TestJSON())
 }
