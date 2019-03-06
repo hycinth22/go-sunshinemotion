@@ -56,6 +56,14 @@ func init() {
 	serviceErrorTable[2] = ErrTokenExpired
 }
 
+func translateServiceError(statusCode int64, statusMessage string) error {
+	err, exist := serviceErrorTable[statusCode]
+	if exist {
+		return err
+	}
+	return fmt.Errorf("response status %d , message: %s", statusCode, statusMessage)
+}
+
 func CreateSession() *Session {
 	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent, PhoneIMEI: GenerateIMEI(), PhoneModel: RandModel()}
 }
@@ -111,11 +119,10 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	if err != nil {
 		return fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
-	err, exist := serviceErrorTable[loginResult.Status]
-	if exist {
+	
+	err = translateServiceError(loginResult.Status, loginResult.ErrorMessage)
+	if err != nil {
 		return err
-	} else if err != nil {
-		return fmt.Errorf("response status %d, message %s", loginResult.Status, loginResult.ErrorMessage)
 	}
 	s.UserID, s.TokenID, s.UserExpirationTime, s.UserInfo = loginResult.UserID, loginResult.TokenID, time.Unix(loginResult.UserExpirationTime/1000, 0), loginResult.UserInfo
 	s.UpdateLimitParams()
@@ -215,13 +222,8 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	if err != nil {
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
-	err, exist := serviceErrorTable[uploadResult.Status]
-	if exist {
-		return err
-	} else if err != nil {
-		return fmt.Errorf("response status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
-	}
-	return nil
+	
+	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string, schoolId int64) (e error) {
@@ -289,13 +291,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
 	
-	err, exist := serviceErrorTable[uploadResult.Status]
-	if exist {
-		return err
-	} else if err != nil {
-		return fmt.Errorf("response status %d , message: %s", uploadResult.Status, uploadResult.ErrorMessage)
-	}
-	return nil
+	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
 }
 
 type SportResult struct {
@@ -345,11 +341,9 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 		return nil, fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
 	
-	err, exist := serviceErrorTable[httpSporstResult.Status]
-	if exist {
+	err = translateServiceError(httpSporstResult.Status, httpSporstResult.ErrorMessage)
+	if err != nil {
 		return nil, err
-	} else if err != nil {
-		return nil, fmt.Errorf("response status %d , message: %s", httpSporstResult.Status, httpSporstResult.ErrorMessage)
 	}
 	
 	r = new(SportResult)
