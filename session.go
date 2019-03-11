@@ -2,6 +2,7 @@ package lib
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"errors"
 )
 
 type Session struct {
@@ -84,14 +84,21 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	if err != nil {
 		return httpError{"HTTP Create Request Failed.", err}
 	}
-
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", s.UserAgent)
-	req.Header.Set("UserID", "0")
-	req.Header.Set("crack", "0")
 	req.Header["UserID"] = []string{"0"}
+	req.Header["TokenID"] = []string{""}
+	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
+	req.Header["ver"] = []string{appVersion}
+	req.Header["device"] = []string{defaultDevice}
+	req.Header["model"] = []string{s.PhoneModel}
+	req.Header["screen"] = []string{"1080x1920"}
+	req.Header["imei"] = []string{s.PhoneIMEI}
+	req.Header["imsi"] = []string{defaultIMSI}
 	req.Header["crack"] = []string{"0"}
-
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
+	req.Header["crack"] = []string{"0"}
+	req.Header.Set("User-Agent", s.UserAgent)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -119,7 +126,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	if err != nil {
 		return fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
-	
+
 	err = translateServiceError(loginResult.Status, loginResult.ErrorMessage)
 	if err != nil {
 		return err
@@ -186,7 +193,6 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		panic(httpError{"HTTP Create Request Failed.", err})
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", s.UserAgent)
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
@@ -199,6 +205,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header.Set("User-Agent", s.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -222,7 +229,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	if err != nil {
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
-	
+
 	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
 }
 
@@ -253,7 +260,6 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", s.UserAgent)
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
@@ -266,6 +272,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header.Set("User-Agent", s.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -290,7 +297,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	if err != nil {
 		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
 	}
-	
+
 	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
 }
 
@@ -305,13 +312,19 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	if err != nil {
 		return nil, fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
 	}
-
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", s.UserAgent)
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
+	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
+	req.Header["ver"] = []string{appVersion}
+	req.Header["device"] = []string{defaultDevice}
+	req.Header["model"] = []string{s.PhoneModel}
+	req.Header["screen"] = []string{"1080x1920"}
+	req.Header["imei"] = []string{s.PhoneIMEI}
+	req.Header["imsi"] = []string{defaultIMSI}
 	req.Header["crack"] = []string{"0"}
-
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -340,12 +353,12 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	if err != nil {
 		return nil, fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
 	}
-	
+
 	err = translateServiceError(httpSporstResult.Status, httpSporstResult.ErrorMessage)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	r = new(SportResult)
 	if httpSporstResult.LastTime != "" {
 		r.LastTime, err = fromExchangeTimeStr(httpSporstResult.LastTime)
