@@ -38,12 +38,14 @@ const (
 	uploadDataURL     = server + "/sunShine_Sports/xtUploadData.action"
 	postTestDataURL   = server + "/sunShine_Sports/postTestData.action"
 	getSportResultURL = server + "/sunShine_Sports/xtGetSportResult.action"
+	getAppInfoURL     = server + "/sunShine_Sports/xtGetAppInfo.action"
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
 	defaultSchoolId = 60
 	defaultIMSI     = "1234567890"
 	defaultDevice   = "Android,25,7.1.2"
 	appVersion      = "2.2.6"
+	appVersionID    = 13
 )
 
 var (
@@ -372,4 +374,68 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	r.Qualified = httpSporstResult.Qualified
 	r.Distance = httpSporstResult.Result
 	return r, nil
+}
+
+type AppInfo struct {
+	ID        int    `json:"iID"`
+	VerNumber int    `json:"iVerNumber"`
+	Url       string `json:"strUrl"`
+	Ver       string `json:"strVer"`
+}
+
+// Fetch the latest app info
+func (s *Session) GetAppInfo() (r AppInfo, e error) {
+	req, err := http.NewRequest(http.MethodPost, getAppInfoURL, nil)
+	if err != nil {
+		e = fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
+		return
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
+	req.Header["TokenID"] = []string{s.TokenID}
+	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
+	req.Header["ver"] = []string{appVersion}
+	req.Header["device"] = []string{defaultDevice}
+	req.Header["model"] = []string{s.PhoneModel}
+	req.Header["screen"] = []string{"1080x1920"}
+	req.Header["imei"] = []string{s.PhoneIMEI}
+	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["crack"] = []string{"0"}
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
+	resp, err := http.DefaultClient.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		e = fmt.Errorf("HTTP Send Request Failed! %s", err.Error())
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		e = fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode))
+		return
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		e = fmt.Errorf("HTTP Read Resp Failed! %s", err.Error())
+		return
+	}
+	var httpResult struct {
+		Status       int64   `json:"Status"`
+		ErrorMessage string  `json:"ErrorMessage"`
+		AppInfo      AppInfo `json:"AppInfo"`
+	}
+	err = json.Unmarshal(respBytes, &httpResult)
+	if err != nil {
+		e = fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
+		return
+	}
+
+	err = translateServiceError(httpResult.Status, httpResult.ErrorMessage)
+	if err != nil {
+		e = err
+		return
+	}
+
+	return httpResult.AppInfo, nil
 }

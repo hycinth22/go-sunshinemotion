@@ -12,11 +12,11 @@ var loginErr error
 
 func init() {
 	session = CreateSession()
-	loginErr = session.LoginEx("031840607", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 60)
+	loginErr = session.LoginEx("091840822", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 60)
 }
 func TestLoginEx(t *testing.T) {
 	session = CreateSession()
-	loginErr = session.LoginEx("031840607", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 60)
+	loginErr = session.LoginEx("091840822", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))), 60)
 	if loginErr != nil {
 		t.Log(loginErr.Error())
 		t.Fatalf("%v", loginErr)
@@ -60,4 +60,13 @@ func TestSession_UploadTestRecord(t *testing.T) {
 		t.Error(err)
 		t.Fail()
 	}
+}
+
+func TestSession_GetAppInfo(t *testing.T) {
+	info, err := session.GetAppInfo()
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
+	t.Logf("info: %+v", info)
 }
