@@ -44,8 +44,8 @@ const (
 	defaultSchoolId = 60
 	defaultIMSI     = "1234567890"
 	defaultDevice   = "Android,25,7.1.2"
-	appVersion      = "2.2.6"
-	appVersionID    = 13
+	AppVersion      = "2.2.6"
+	AppVersionID    = 13
 )
 
 var (
@@ -90,7 +90,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	req.Header["UserID"] = []string{"0"}
 	req.Header["TokenID"] = []string{""}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{appVersion}
+	req.Header["ver"] = []string{AppVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -198,7 +198,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{appVersion}
+	req.Header["ver"] = []string{AppVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -265,7 +265,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{appVersion}
+	req.Header["ver"] = []string{AppVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -318,7 +318,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{appVersion}
+	req.Header["ver"] = []string{AppVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
@@ -394,7 +394,7 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
 	req.Header["TokenID"] = []string{s.TokenID}
 	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{appVersion}
+	req.Header["ver"] = []string{AppVersion}
 	req.Header["device"] = []string{defaultDevice}
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
