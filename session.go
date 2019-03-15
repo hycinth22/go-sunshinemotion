@@ -144,17 +144,17 @@ func (s *Session) UpdateLimitParams() {
 	switch s.UserInfo.Sex {
 	case "F":
 		s.LimitParams = &LimitParams{
-			RandDistance:        Float64Range{2.0, 3.0},
+			RandDistance:        Float64Range{2.5, 3.0},
 			LimitSingleDistance: Float64Range{1.0, 3.0},
 			LimitTotalDistance:  Float64Range{1.0, 3.0},
-			MinuteDuration:      IntRange{11, 20},
+			MinuteDuration:      IntRange{25, 35},
 		}
 	case "M":
 		s.LimitParams = &LimitParams{
-			RandDistance:        Float64Range{2.6, 4.0},
-			LimitSingleDistance: Float64Range{2.0, 4.0},
+			RandDistance:        Float64Range{4.5, 5.0},
+			LimitSingleDistance: Float64Range{2.0, 5.0},
 			LimitTotalDistance:  Float64Range{2.0, 5.0},
-			MinuteDuration:      IntRange{14, 25},
+			MinuteDuration:      IntRange{45, 65},
 		}
 
 	default:
