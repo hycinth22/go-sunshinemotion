@@ -3,7 +3,6 @@ package lib
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -69,27 +68,22 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, 
 	for remain > 0 {
 		var singleDistance float64
 		// 范围取随机
-		if remain > limitParams.RandDistance.Max {
-			// 检查是否下一条可能丢弃较大的距离
-			// 防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
-			if remain-limitParams.RandDistance.Max > limitParams.LimitSingleDistance.Min {
-				// 正常取随机值
-				singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
-			} else {
-				// 随机选择本条为最小限制距离，或者为下一条预留最小限制距离
-				singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[randRange(0, 1)]
-			}
-		} else if remain >= limitParams.LimitSingleDistance.Min && remain <= limitParams.LimitSingleDistance.Max {
-			// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
-			singleDistance = remain
+		// 会检查是否下一条可能丢弃较大的距离
+		// 防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
+		if remain > limitParams.RandDistance.Max+limitParams.LimitSingleDistance.Min {
+			// 正常取随机值
+			singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
+		} else if remain > limitParams.RandDistance.Max {
+			// 随机选择本条为最小限制距离，或者为下一条预留最小限制距离
+			singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[randRange(0, 1)]
 		} else {
-			// 剩余较多，但不符合限制区间无法再生成一条合法记录，输出提醒
-			if remain > 0.5 {
-				fmt.Println("提醒：由于随机原则与区间限制的冲突，丢弃了较大的距离", remain, "公里，考虑重新设定距离值。")
+			if remain >= limitParams.LimitSingleDistance.Min {
+				// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
+				singleDistance = remain
+			}else {
+				println("提醒：随机原则与区间限制的冲突，检查算法正确性")
 			}
-			break
 		}
-
 		// 小数部分随机化 -0.09 ~ 0.09
 		tinyPart := float64(randRange(0, 99999)) / 1000000
 		switch r := singleDistance + tinyPart; {

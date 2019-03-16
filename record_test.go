@@ -6,13 +6,15 @@ import (
 )
 
 func TestSmartCreateRecords(t *testing.T) {
-	records := SmartCreateRecords(0, 0, &LimitParams{
-		RandDistance:        Float64Range{2.6, 4.0},
-		LimitSingleDistance: Float64Range{2.0, 4.0},
-		LimitTotalDistance:  Float64Range{2.0, 5.0},
-		MinuteDuration:      IntRange{11, 20},
-	}, 5, time.Now())
-	for _, r := range records {
+	s := CreateSession()
+	s.UserInfo.Sex = "F"; s.UpdateLimitParams()
+	records_f := SmartCreateRecords(0, 0, s.LimitParams, s.LimitParams.LimitTotalDistance.Max - 0.1, time.Now())
+	for _, r := range records_f {
+		t.Logf("%+v", r)
+	}
+	s.UserInfo.Sex = "M"; s.UpdateLimitParams()
+	records_m := SmartCreateRecords(0, 0, s.LimitParams, s.LimitParams.LimitTotalDistance.Max - 0.1, time.Now())
+	for _, r := range records_m {
 		t.Logf("%+v", r)
 	}
 }
