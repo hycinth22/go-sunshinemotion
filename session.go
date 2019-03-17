@@ -43,9 +43,9 @@ const (
 
 	defaultSchoolId = 60
 	defaultIMSI     = "1234567890"
-	defaultDevice   = "Android,25,7.1.2"
-	AppVersion      = "2.2.6"
-	AppVersionID    = 13
+	defaultDevice   = "Android,25,7.1.0"
+	AppVersion      = "2.2.7"
+	AppVersionID    = 14
 )
 
 var (
@@ -100,6 +100,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
 	req.Header["crack"] = []string{"0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
 	req.Header.Set("User-Agent", s.UserAgent)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
@@ -169,11 +170,8 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64, schoolID int64) (e error) {
-	bz := "[" +
+	bz := "[ccxyct:" +
 		strconv.FormatInt(endTime.Unix(), 10) + ", " +
-		defaultDevice + ", " +
-		s.PhoneIMEI + ", " +
-		defaultIMSI +
 		"]"
 	j := XTJsonSportTestData{
 		Result:       toExchangeDistanceStr(distance),
@@ -207,6 +205,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
 	req.Header.Set("User-Agent", s.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -236,7 +235,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string, schoolId int64) (e error) {
-	bz := "[" +
+	bz := "[ccxyct:" +
 		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
@@ -274,6 +273,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
 	req.Header.Set("User-Agent", s.UserAgent)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -327,6 +327,9 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
+
+	req.Header.Set("User-Agent", s.UserAgent)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -403,6 +406,9 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
+
+	req.Header.Set("User-Agent", s.UserAgent)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
