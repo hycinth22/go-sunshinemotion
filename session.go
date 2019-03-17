@@ -49,18 +49,23 @@ const (
 )
 
 var (
-	serviceErrorTable = make(map[int64]error)
-	ErrTokenExpired   = errors.New("超时，请重新登录")
+	serviceErrorTable          = make(map[int64]error)
+	ErrWrongUsernameOrPassword = errors.New("用户名或者密码错误")
+	ErrTokenExpired            = errors.New("超时，请重新登录")
+	ErrDisqualifiedSpeed       = errors.New("速度不合格")
 )
 
 func init() {
+	serviceErrorTable[0] = ErrWrongUsernameOrPassword
 	serviceErrorTable[1] = nil
 	serviceErrorTable[2] = ErrTokenExpired
+	serviceErrorTable[5] = ErrDisqualifiedSpeed
 }
 
 func translateServiceError(statusCode int64, statusMessage string) error {
 	err, exist := serviceErrorTable[statusCode]
 	if exist {
+		// TODO: 使用自定义错误类型存储statusMessage。此种情况仍然需要记录
 		return err
 	}
 	return fmt.Errorf("response status %d , message: %s", statusCode, statusMessage)
