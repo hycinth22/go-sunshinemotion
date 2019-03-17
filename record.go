@@ -80,7 +80,7 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, 
 			if remain >= limitParams.LimitSingleDistance.Min {
 				// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
 				singleDistance = remain
-			}else {
+			} else {
 				println("提醒：随机原则与区间限制的冲突，检查算法正确性")
 			}
 		}
