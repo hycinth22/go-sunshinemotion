@@ -125,6 +125,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	var loginResult struct {
 		Status             int64
 		ErrorMessage       string
+		Date               string
 		UserID             int64
 		TokenID            string
 		UserExpirationTime int64
@@ -139,7 +140,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	if err != nil {
 		return err
 	}
-	s.UserID, s.TokenID, s.UserExpirationTime, s.UserInfo = loginResult.UserID, loginResult.TokenID, time.Unix(loginResult.UserExpirationTime/1000, 0), loginResult.UserInfo
+	s.UserID, s.TokenID, s.UserExpirationTime, s.UserInfo = loginResult.UserID, loginResult.TokenID, time.Unix(0, loginResult.UserExpirationTime*1000000), loginResult.UserInfo
 	s.UpdateLimitParams()
 	return nil
 }
