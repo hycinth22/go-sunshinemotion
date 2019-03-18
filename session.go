@@ -152,14 +152,14 @@ func (s *Session) UpdateLimitParams() {
 	case "F":
 		s.LimitParams = &LimitParams{
 			RandDistance:        Float64Range{2.5, 3.0},
-			LimitSingleDistance: Float64Range{2.5, 3.0},
+			LimitSingleDistance: Float64Range{1.0, 3.0},
 			LimitTotalDistance:  Float64Range{1.0, 3.0},
 			MinuteDuration:      IntRange{25, 35},
 		}
 	case "M":
 		s.LimitParams = &LimitParams{
 			RandDistance:        Float64Range{4.5, 5.0},
-			LimitSingleDistance: Float64Range{4.5, 5.0},
+			LimitSingleDistance: Float64Range{2.0, 5.0},
 			LimitTotalDistance:  Float64Range{2.0, 5.0},
 			MinuteDuration:      IntRange{45, 65},
 		}

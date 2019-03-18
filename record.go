@@ -65,24 +65,34 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, 
 	records := make([]Record, 0, int(distance/3))
 	remain := distance
 	lastBeginTime := beforeTime
+	println("distance", distance)
 	for remain > 0 {
 		var singleDistance float64
 		// 范围取随机
-		// 会检查是否下一条可能丢弃较大的距离
-		// 防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
-		if remain > limitParams.RandDistance.Max+limitParams.LimitSingleDistance.Min {
-			// 正常取随机值
+		// 会检查是否下一条可能丢弃较大的距离，防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
+		if remain >= 2*limitParams.LimitSingleDistance.Max {
+			// 剩余足够大，正常取随机值
 			singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
-		} else if remain > limitParams.RandDistance.Max {
-			// 随机选择本条为最小限制距离，或者为下一条预留最小限制距离
-			singleDistance = []float64{limitParams.LimitSingleDistance.Min, remain - limitParams.LimitSingleDistance.Min}[randRange(0, 1)]
-		} else {
-			if remain >= limitParams.LimitSingleDistance.Min {
-				// 剩余的符合限制区间，直接使用剩余的生成最后一条记录
-				singleDistance = remain
+			println("p1", singleDistance)
+		} else if remain >= 2 * limitParams.LimitSingleDistance.Min {
+			// 即将耗尽，首先尝试放入一条记录内，否则为下一条预留
+			if remain <= limitParams.LimitSingleDistance.Max {
+				singleDistance = remain 
 			} else {
-				println("提醒：随机原则与区间限制的冲突，检查算法正确性")
+				// 为下一条预留最小限制距离
+				singleDistance = remain - limitParams.LimitSingleDistance.Min
 			}
+			println("p2", singleDistance)
+		} else if remain >= limitParams.LimitSingleDistance.Min {
+			// 剩余的符合最小限制距离，直接使用剩余的生成最后一条记录
+			singleDistance = remain
+			println("p3", singleDistance)
+		} else if remain > 0.1 {
+			println("检查算法正确性", remain)
+			break
+		}else {
+			// 最后的零星距离，可以直接丢弃
+			break
 		}
 		// 小数部分随机化 -0.09 ~ 0.09
 		tinyPart := float64(randRange(0, 99999)) / 1000000
@@ -97,10 +107,13 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, 
 		}
 
 		// 检测结果合法性，由于TinyPart允许上下浮动0.1
-		if singleDistance < limitParams.LimitSingleDistance.Min-0.1 || singleDistance > limitParams.LimitSingleDistance.Max+0.1 {
+		if singleDistance < limitParams.LimitSingleDistance.Min-0.1 {
 			// 丢弃不合法距离
 			log.Println("Drop distance: ", singleDistance)
 			continue
+		}
+		if singleDistance > limitParams.LimitSingleDistance.Max {
+			singleDistance = limitParams.LimitSingleDistance.Max
 		}
 
 		var randomDuration time.Duration
