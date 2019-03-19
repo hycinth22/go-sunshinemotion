@@ -35,3 +35,18 @@ func TestDecodeBZ(t *testing.T) {
 		}
 	}
 }
+
+func TestGetXTcodeV3(t *testing.T) {
+	var (
+		userId    int64 = 11732
+		beginTime       = "2019-03-19 14:38:02"
+		distance        = "0.000"
+	)
+	t.Logf("%s", GetXTcodeV3(userId, beginTime, "2.111"))
+	if GetXTcodeV3(userId, beginTime, distance) != "08E10F3A5C53D1F2622198360D5833AB" {
+		t.FailNow()
+	}
+	if GetXTcodeV3(userId+1, beginTime, distance+"_") == "08E10F3A5C53D1F2622198360D5833AB" {
+		t.FailNow()
+	}
+}

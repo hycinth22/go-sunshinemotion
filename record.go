@@ -17,6 +17,11 @@ type Record struct {
 	xtcode    string
 }
 
+type IXTJsonSportData interface {
+	ToJSON() string
+	GetStrpa() string
+}
+
 type XTJsonSportData struct {
 	Result       string `json:"results"`
 	StartTimeStr string `json:"beginTime"`

@@ -42,7 +42,7 @@ const (
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
 	defaultSchoolId = 60
-	defaultDevice   = "Android,25,7.1.0"
+	defaultDevice   = "Android,23,6.0"
 	AppVersion      = "2.2.7"
 	AppVersionID    = 14
 )
@@ -175,10 +175,10 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 }
 
 func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64, schoolID int64) (e error) {
-	bz := "[ccxyct:" +
-		strconv.FormatInt(endTime.Unix(), 10) + ", " +
-		"]"
-	j := XTJsonSportTestData{
+	bz := EncodeSportData("[ccxyct:" +
+		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) +
+		"]")
+	sportData := XTJsonSportTestData{
 		Result:       toExchangeDistanceStr(distance),
 		StartTimeStr: toExchangeTimeStr(beginTime),
 		EndTimeStr:   toExchangeTimeStr(endTime),
@@ -187,11 +187,9 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 		XTCode:       xtCode,
 		SchoolID:     schoolID,
 		TestTime:     useTime,
-	}.ToJSON()
-	fmt.Println("j:", j)
-	strpa := EncodeSportData(j)
-	fmt.Println("strpa:", strpa)
-	query := url.Values{"item_param": []string{strpa}}.Encode()
+	}
+	fmt.Println("sportData:", sportData)
+	query := makeQuery(sportData)
 	fmt.Println("query:", query)
 	req, err := http.NewRequest(http.MethodPost, postTestDataURL+"?"+query, nil)
 	if err != nil {
@@ -240,13 +238,13 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 }
 
 func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string, schoolId int64) (e error) {
-	bz := "[ccxyct:" +
-		strconv.FormatInt(endTime.Unix(), 10) + ", " +
+	bz := EncodeSportData("[ccxyct:" +
+		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
 		s.PhoneIMEI +
-		"]"
-	j := XTJsonSportData{
+		"]")
+	sportData := XTJsonSportData{
 		Result:       toExchangeDistanceStr(distance),
 		StartTimeStr: toExchangeTimeStr(beginTime),
 		EndTimeStr:   toExchangeTimeStr(endTime),
@@ -254,11 +252,9 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		BZ:           bz,
 		XTCode:       xtCode,
 		SchoolID:     schoolId,
-	}.ToJSON()
-	fmt.Println("j:", j)
-	strpa := EncodeSportData(j)
-	fmt.Println("strpa:", strpa)
-	query := url.Values{"item_param": []string{strpa}}.Encode()
+	}
+	fmt.Println("sportData:", sportData)
+	query := makeQuery(sportData)
 	fmt.Println("query:", query)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL+"?"+query, nil)
 	if err != nil {
@@ -449,4 +445,12 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 	}
 
 	return httpResult.AppInfo, nil
+}
+
+func makeQuery(d IXTJsonSportData) string {
+	j := d.ToJSON()
+	fmt.Println("json:", j)
+	pa := EncodeSportData(j)
+	fmt.Println("pa:", pa)
+	return url.Values{"item_param": []string{pa}}.Encode()
 }
