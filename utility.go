@@ -1,4 +1,4 @@
-package lib
+package ssmt
 
 import (
 	"crypto/md5"
@@ -7,6 +7,15 @@ import (
 	"strconv"
 	"time"
 )
+
+type Float64Range struct {
+	Min float64
+	Max float64
+}
+type IntRange struct {
+	Min int
+	Max int
+}
 
 func init() {
 	rand.Seed(time.Now().Unix())
@@ -26,7 +35,7 @@ func PasswordHash(raw string) string {
 }
 
 func GenerateIMEI() string {
-	r1, r2 := 10000 + randRange(0, 89999), 1000000+randRange(0, 8999999)
+	r1, r2 := 10000+randRange(0, 89999), 1000000+randRange(0, 8999999)
 	input := "86" + strconv.Itoa(r1) + strconv.Itoa(r2)
 	var a, b int32 = 0, 0
 	for i, tt := range input {

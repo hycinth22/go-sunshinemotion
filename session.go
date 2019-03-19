@@ -1,10 +1,9 @@
-package lib
+package ssmt
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -14,71 +13,82 @@ import (
 )
 
 type Session struct {
-	UserID             int64
-	TokenID            string
-	UserExpirationTime time.Time
-	UserInfo           UserInfo
-	UserAgent          string
-	LimitParams        *LimitParams
-	PhoneIMEI          string
-	PhoneModel         string
-}
-type httpError struct {
-	msg     string
-	httpErr error
+	User   *UserIdentify
+	Token  *UserToken
+	Device *Device
 }
 
-func (e httpError) Error() string {
-	return e.msg + "\n" + e.httpErr.Error()
+type UserIdentify struct {
+	Username string
+	UserID   int64
+	SchoolID int64
+}
+
+type UserToken struct {
+	TokenID        string
+	ExpirationTime time.Time
 }
 
 const (
-	server            = "http://www.ccxyct.com:8080"
-	loginURL          = server + "/sunShine_Sports/loginSport.action"
-	uploadDataURL     = server + "/sunShine_Sports/xtUploadData.action"
-	postTestDataURL   = server + "/sunShine_Sports/postTestData.action"
-	getSportResultURL = server + "/sunShine_Sports/xtGetSportResult.action"
-	getAppInfoURL     = server + "/sunShine_Sports/xtGetAppInfo.action"
-	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
+	serverAPIRoot     = "http://www.ccxyct.com:8080"
+	loginURL          = serverAPIRoot + "/sunShine_Sports/loginSport.action"
+	uploadDataURL     = serverAPIRoot + "/sunShine_Sports/xtUploadData.action"
+	postTestDataURL   = serverAPIRoot + "/sunShine_Sports/postTestData.action"
+	getSportResultURL = serverAPIRoot + "/sunShine_Sports/xtGetSportResult.action"
+	getAppInfoURL     = serverAPIRoot + "/sunShine_Sports/xtGetAppInfo.action"
 
-	defaultSchoolId = 60
-	defaultDevice   = "Android,23,6.0"
-	AppVersion      = "2.2.7"
-	AppVersionID    = 14
+	AppPackageName = "com.ccxyct.sunshinemotion"
+	AppVersion     = "2.2.7"
+	AppVersionID   = 14
 )
 
-var (
-	serviceErrorTable          = make(map[int64]error)
-	ErrWrongUsernameOrPassword = errors.New("用户名或者密码错误")
-	ErrTokenExpired            = errors.New("超时，请重新登录")
-	ErrDisqualifiedSpeed       = errors.New("速度不合格")
-)
-
-func init() {
-	serviceErrorTable[0] = ErrWrongUsernameOrPassword
-	serviceErrorTable[1] = nil
-	serviceErrorTable[2] = ErrTokenExpired
-	serviceErrorTable[5] = ErrDisqualifiedSpeed
-}
-
-func translateServiceError(statusCode int64, statusMessage string) error {
-	err, exist := serviceErrorTable[statusCode]
-	if exist {
-		// TODO: 使用自定义错误类型存储statusMessage。此种情况仍然需要记录
-		return err
-	}
-	return fmt.Errorf("response status %d , message: %s", statusCode, statusMessage)
+func (s *Session) setRandomDevice() {
+	s.Device = GenerateDevice()
 }
 
 func CreateSession() *Session {
-	return &Session{UserID: 0, TokenID: "", UserAgent: DefaultUserAgent, PhoneIMEI: GenerateIMEI(), PhoneModel: RandModel()}
+	return &Session{}
 }
 
-// DEPRECATED: use LoginEx instead
-func (s *Session) Login(stuNum string, phoneNum string, passwordHash string) (e error) {
-	return s.LoginEx(stuNum, phoneNum, passwordHash, defaultSchoolId)
+func (s *Session) setHTTPHeader(req *http.Request) {
+	req.Header["UserID"] = []string{strconv.FormatInt(s.User.UserID, 10)}
+	req.Header["TokenID"] = []string{s.Token.TokenID}
+	req.Header["app"] = []string{AppPackageName}
+	req.Header["ver"] = []string{AppVersion}
+	req.Header["device"] = []string{s.Device.DeviceName}
+	req.Header["model"] = []string{s.Device.ModelType}
+	req.Header["screen"] = []string{s.Device.Screen}
+	req.Header["imei"] = []string{s.Device.IMEI}
+	req.Header["imsi"] = []string{s.Device.IMSI}
+	req.Header["crack"] = []string{"0"}
+	req.Header["latitude"] = []string{"0.0"}
+	req.Header["longitude"] = []string{"0.0"}
+	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("User-Agent", s.Device.UserAgent)
 }
-func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, schoolID int64) (e error) {
+
+type UserInfo struct {
+	ClassID       int64  `json:"inClassID"`
+	ClassName     string `json:"inClassName"`
+	CollegeID     int64  `json:"inCollegeID"`
+	CollegeName   string `json:"inCollegeName"`
+	SchoolID      int64  `json:"inSchoolID"`
+	SchoolName    string `json:"inSchoolName"`
+	SchoolNumber  string `json:"inSchoolNumber"`
+	NickName      string `json:"nickName"`
+	StudentName   string `json:"studentName"`
+	StudentNumber string `json:"studentNumber"`
+	IsTeacher     int    `json:"isTeacher"`
+	Sex           string `json:"sex"`
+	PhoneNumber   string `json:"phoneNumber"`
+	UserRoleID    int    `json:"UserRoleID"`
+}
+
+func (s *Session) Login(schoolID int64, stuNum string, phoneNum string, passwordHash string) (info UserInfo, e error) {
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
 	req, err := http.NewRequest(http.MethodPost, loginURL, strings.NewReader(url.Values{
 		"stuNum":   {stuNum},
 		"phoneNum": {phoneNum},
@@ -88,39 +98,20 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 		"token":    {""},
 	}.Encode()))
 	if err != nil {
-		return httpError{"HTTP Create Request Failed.", err}
+		return UserInfo{}, httpError{"HTTP Create Request Failed.", err}
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header["UserID"] = []string{"0"}
-	req.Header["TokenID"] = []string{""}
-	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{defaultDevice}
-	req.Header["model"] = []string{s.PhoneModel}
-	req.Header["screen"] = []string{"1080x1920"}
-	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{s.PhoneIMEI}
-	req.Header["crack"] = []string{"0"}
-	req.Header["latitude"] = []string{"0.0"}
-	req.Header["longitude"] = []string{"0.0"}
-	req.Header["crack"] = []string{"0"}
-	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-	req.Header.Set("User-Agent", s.UserAgent)
+	s.User, s.Token = new(UserIdentify), new(UserToken)
+	s.setHTTPHeader(req)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		return httpError{"HTTP Send Request Failed! ", err}
+		return UserInfo{}, httpError{"HTTP Send Request Failed! ", err}
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP Response Status: %d(%s)", resp.StatusCode, http.StatusText(resp.StatusCode))
+		return UserInfo{}, fmt.Errorf("HTTP Response Status: %d(%s)", resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("HTTP Read Resp Failed! %s", err.Error())
-	}
-
 	var loginResult struct {
 		Status             int64
 		ErrorMessage       string
@@ -130,184 +121,110 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 		UserExpirationTime int64
 		UserInfo           UserInfo
 	}
-	err = json.Unmarshal(respBytes, &loginResult)
+	err = json.NewDecoder(resp.Body).Decode(&loginResult)
 	if err != nil {
-		return fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
+		return UserInfo{}, fmt.Errorf("HTTP Response reslove Failed. %s", err.Error())
 	}
-
 	err = translateServiceError(loginResult.Status, loginResult.ErrorMessage)
 	if err != nil {
-		return err
+		return UserInfo{}, err
 	}
-	s.UserID, s.TokenID, s.UserExpirationTime, s.UserInfo = loginResult.UserID, loginResult.TokenID, time.Unix(0, loginResult.UserExpirationTime*1000000), loginResult.UserInfo
-	s.UpdateLimitParams()
-	return nil
+	s.User.UserID, s.User.SchoolID, s.User.Username = loginResult.UserID, loginResult.UserInfo.SchoolID, stuNum
+	s.Token.TokenID, s.Token.ExpirationTime = loginResult.TokenID, time.Unix(0, loginResult.UserExpirationTime*1000000)
+	return loginResult.UserInfo, nil
 }
 
-func (s *Session) UpdateLimitParams() {
-	// 参数设定：
-	// MinuteDuration: min>minDis*3, max<maxDis*10
-	switch s.UserInfo.Sex {
-	case "F":
-		s.LimitParams = &LimitParams{
-			RandDistance:        Float64Range{2.5, 3.0},
-			LimitSingleDistance: Float64Range{1.0, 3.0},
-			LimitTotalDistance:  Float64Range{1.0, 3.0},
-			MinuteDuration:      IntRange{25, 35},
-		}
-	case "M":
-		s.LimitParams = &LimitParams{
-			RandDistance:        Float64Range{4.5, 5.0},
-			LimitSingleDistance: Float64Range{2.0, 5.0},
-			LimitTotalDistance:  Float64Range{2.0, 5.0},
-			MinuteDuration:      IntRange{45, 65},
-		}
-
-	default:
-		panic("Unknown Sex" + s.UserInfo.Sex)
-	}
-}
 func (s *Session) UploadRecord(record Record) (e error) {
-	return s.UploadData(record.Distance, record.BeginTime, record.EndTime, record.xtcode, record.SchoolID)
-}
-func (s *Session) UploadTestRecord(record Record) (e error) {
-	return s.uploadTestRecord(record.Distance, record.BeginTime, record.EndTime, record.xtcode, int64(record.EndTime.Sub(record.BeginTime).Seconds()), record.SchoolID)
-}
-
-func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTime time.Time, xtCode string, useTime int64, schoolID int64) (e error) {
-	bz := EncodeSportData("[ccxyct:" +
-		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) +
-		"]")
-	sportData := XTJsonSportTestData{
-		Result:       toExchangeDistanceStr(distance),
-		StartTimeStr: toExchangeTimeStr(beginTime),
-		EndTimeStr:   toExchangeTimeStr(endTime),
-		IsValid:      1,
-		BZ:           bz,
-		XTCode:       xtCode,
-		SchoolID:     schoolID,
-		TestTime:     useTime,
+	if s.Device == nil {
+		s.setRandomDevice()
 	}
-	fmt.Println("sportData:", sportData)
-	query := makeQuery(sportData)
-	fmt.Println("query:", query)
-	req, err := http.NewRequest(http.MethodPost, postTestDataURL+"?"+query, nil)
-	if err != nil {
-		panic(httpError{"HTTP Create Request Failed.", err})
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
-	req.Header["TokenID"] = []string{s.TokenID}
-	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{defaultDevice}
-	req.Header["model"] = []string{s.PhoneModel}
-	req.Header["screen"] = []string{"1080x1920"}
-	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{s.PhoneIMEI}
-	req.Header["crack"] = []string{"0"}
-	req.Header["latitude"] = []string{"0.0"}
-	req.Header["longitude"] = []string{"0.0"}
-	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-	req.Header.Set("User-Agent", s.UserAgent)
-
-	resp, err := http.DefaultClient.Do(req)
-	if resp != nil && resp.Body != nil {
-		defer resp.Body.Close()
-	}
-	if err != nil {
-		panic(fmt.Errorf("HTTP Send Request Failed! %s", err.Error()))
-	}
-	if resp.StatusCode != http.StatusOK {
-		panic(fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode)))
-	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(fmt.Errorf("HTTP Read Resp Failed! %s", err.Error()))
-	}
-	var uploadResult struct {
-		Status       int64
-		ErrorMessage string
-	}
-	err = json.Unmarshal(respBytes, &uploadResult)
-	if err != nil {
-		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
-	}
-
-	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
-}
-
-func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time.Time, xtCode string, schoolId int64) (e error) {
-	bz := EncodeSportData("[ccxyct:" +
+	bz := EncodeString("[ccxyct:" +
 		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) + ", " +
-		defaultDevice + ", " +
-		s.PhoneIMEI + ", " +
-		s.PhoneIMEI +
+		s.Device.DeviceName + ", " +
+		s.Device.IMEI + ", " +
+		s.Device.IMSI +
 		"]")
-	sportData := XTJsonSportData{
-		Result:       toExchangeDistanceStr(distance),
-		StartTimeStr: toExchangeTimeStr(beginTime),
-		EndTimeStr:   toExchangeTimeStr(endTime),
-		IsValid:      1,
-		BZ:           bz,
-		XTCode:       xtCode,
-		SchoolID:     schoolId,
-	}
+	sportData := XTJsonSportDataFromRecord(record, bz)
 	fmt.Println("sportData:", sportData)
 	query := makeQuery(sportData)
 	fmt.Println("query:", query)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL+"?"+query, nil)
 	if err != nil {
-		panic(httpError{"HTTP Create Request Failed.", err})
+		return httpError{"HTTP Create Request Failed.", err}
 	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
-	req.Header["TokenID"] = []string{s.TokenID}
-	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{defaultDevice}
-	req.Header["model"] = []string{s.PhoneModel}
-	req.Header["screen"] = []string{"1080x1920"}
-	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{s.PhoneIMEI}
-	req.Header["crack"] = []string{"0"}
-	req.Header["latitude"] = []string{"0.0"}
-	req.Header["longitude"] = []string{"0.0"}
-	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-	req.Header.Set("User-Agent", s.UserAgent)
-
+	s.setHTTPHeader(req)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		panic(fmt.Errorf("HTTP Send Request Failed! %s", err.Error()))
+		return httpError{"HTTP Send Request Failed! %s", err}
 	}
 	if resp.StatusCode != http.StatusOK {
-		panic(fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode)))
+		return fmt.Errorf("HTTP Status: %s", resp.Status)
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(fmt.Errorf("HTTP Read Resp Failed! %s", err.Error()))
-	}
-
 	var uploadResult struct {
 		Status       int64
 		ErrorMessage string
 	}
-	err = json.Unmarshal(respBytes, &uploadResult)
+	err = json.NewDecoder(resp.Body).Decode(&uploadResult)
 	if err != nil {
-		panic(fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes)))
+		return fmt.Errorf("HTTP Response reslove Failed. %s", err.Error())
+	}
+	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
+}
+func (s *Session) UploadTestRecord(record Record) (e error) {
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
+	bz := EncodeString("[ccxyct:" +
+		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) +
+		"]")
+	sportData := XTJsonSportTestDataFromRecord(record, bz)
+	fmt.Println("sportData:", sportData)
+	query := makeQuery(sportData)
+	fmt.Println("query:", query)
+	req, err := http.NewRequest(http.MethodPost, postTestDataURL+"?"+query, nil)
+	if err != nil {
+		return httpError{"HTTP Create Request Failed.", err}
+	}
+	s.setHTTPHeader(req)
+	resp, err := http.DefaultClient.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		return fmt.Errorf("HTTP Send Request Failed! %s", err.Error())
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode))
+	}
+	var uploadResult struct {
+		Status       int64
+		ErrorMessage string
+	}
+	err = json.NewDecoder(resp.Body).Decode(&uploadResult)
+	if err != nil {
+		return fmt.Errorf("reslove Failed. %s", err.Error())
 	}
 
 	return translateServiceError(uploadResult.Status, uploadResult.ErrorMessage)
 }
+func makeQuery(d IXTJsonSportData) string {
+	j := d.ToJSON()
+	fmt.Println("json:", j)
+	pa := EncodeString(j)
+	fmt.Println("pa:", pa)
+	return url.Values{"item_param": []string{pa}}.Encode()
+}
 
 type SportResult struct {
-	LastTime  time.Time
-	Qualified float64
-	Distance  float64
+	UserID            int64     // 用户ID
+	Year              int       // 年度
+	Term              string    // 学期
+	QualifiedDistance float64   // 达标距离
+	ActualDistance    float64   // 已计距离
+	LastTime          time.Time // 上次跑步时间
 }
 
 func (s *Session) GetSportResult() (r *SportResult, e error) {
@@ -315,22 +232,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	if err != nil {
 		return nil, fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
-	req.Header["TokenID"] = []string{s.TokenID}
-	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{defaultDevice}
-	req.Header["model"] = []string{s.PhoneModel}
-	req.Header["screen"] = []string{"1080x1920"}
-	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{s.PhoneIMEI}
-	req.Header["crack"] = []string{"0"}
-	req.Header["latitude"] = []string{"0.0"}
-	req.Header["longitude"] = []string{"0.0"}
-	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-
-	req.Header.Set("User-Agent", s.UserAgent)
+	s.setHTTPHeader(req)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -341,11 +243,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode))
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("HTTP Read Resp Failed! %s", err.Error())
-	}
-	var httpSporstResult struct {
+	var httpSportResult struct {
 		Status       int64
 		ErrorMessage string
 		LastTime     string  `json:"lastTime"`
@@ -355,28 +253,29 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 		Term         string  `json:"term"`
 		Year         int     `json:"year"`
 	}
-	err = json.Unmarshal(respBytes, &httpSporstResult)
+	err = json.NewDecoder(resp.Body).Decode(&httpSportResult)
 	if err != nil {
-		return nil, fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
+		return nil, fmt.Errorf("reslove Failed. %s", err.Error())
 	}
-
-	err = translateServiceError(httpSporstResult.Status, httpSporstResult.ErrorMessage)
+	err = translateServiceError(httpSportResult.Status, httpSportResult.ErrorMessage)
 	if err != nil {
 		return nil, err
 	}
 
-	r = new(SportResult)
-	if httpSporstResult.LastTime != "" {
-		r.LastTime, err = fromExchangeTimeStr(httpSporstResult.LastTime)
-	} else {
-		r.LastTime = time.Now()
+	r = &SportResult{
+		UserID:            httpSportResult.UserID,
+		Year:              httpSportResult.Year,
+		Term:              httpSportResult.Term,
+		QualifiedDistance: httpSportResult.Qualified,
+		ActualDistance:    httpSportResult.Result,
 	}
-	if err != nil {
-		log.Println(string(respBytes))
-		panic(err)
+	if httpSportResult.LastTime != "" {
+		r.LastTime, err = fromServiceStdTime(httpSportResult.LastTime)
+		if err != nil {
+			log.Println(err)
+			return nil, errors.New("response parsing error: " + err.Error())
+		}
 	}
-	r.Qualified = httpSporstResult.Qualified
-	r.Distance = httpSporstResult.Result
 	return r, nil
 }
 
@@ -394,22 +293,7 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 		e = fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
 		return
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header["UserID"] = []string{strconv.FormatInt(s.UserID, 10)}
-	req.Header["TokenID"] = []string{s.TokenID}
-	req.Header["app"] = []string{"com.ccxyct.sunshinemotion"}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{defaultDevice}
-	req.Header["model"] = []string{s.PhoneModel}
-	req.Header["screen"] = []string{"1080x1920"}
-	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{s.PhoneIMEI}
-	req.Header["crack"] = []string{"0"}
-	req.Header["latitude"] = []string{"0.0"}
-	req.Header["longitude"] = []string{"0.0"}
-	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-
-	req.Header.Set("User-Agent", s.UserAgent)
+	s.setHTTPHeader(req)
 	resp, err := http.DefaultClient.Do(req)
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
@@ -422,19 +306,14 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 		e = fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode))
 		return
 	}
-	respBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		e = fmt.Errorf("HTTP Read Resp Failed! %s", err.Error())
-		return
-	}
 	var httpResult struct {
 		Status       int64   `json:"Status"`
 		ErrorMessage string  `json:"ErrorMessage"`
 		AppInfo      AppInfo `json:"AppInfo"`
 	}
-	err = json.Unmarshal(respBytes, &httpResult)
+	err = json.NewDecoder(resp.Body).Decode(&httpResult)
 	if err != nil {
-		e = fmt.Errorf("reslove Failed. %s %s", err.Error(), string(respBytes))
+		e = fmt.Errorf("reslove Failed. %s", err.Error())
 		return
 	}
 
@@ -445,12 +324,4 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 	}
 
 	return httpResult.AppInfo, nil
-}
-
-func makeQuery(d IXTJsonSportData) string {
-	j := d.ToJSON()
-	fmt.Println("json:", j)
-	pa := EncodeSportData(j)
-	fmt.Println("pa:", pa)
-	return url.Values{"item_param": []string{pa}}.Encode()
 }

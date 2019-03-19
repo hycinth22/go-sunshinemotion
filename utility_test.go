@@ -1,8 +1,8 @@
-package lib
+package ssmt
 
 import (
-	"testing"
 	"regexp"
+	"testing"
 )
 
 func TestGenerateIMEI(t *testing.T) {

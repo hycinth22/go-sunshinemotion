@@ -1,10 +1,8 @@
-package lib
+package ssmt
 
 import (
-	"bytes"
 	"encoding/json"
 	"log"
-	"strconv"
 	"time"
 )
 
@@ -31,6 +29,29 @@ type XTJsonSportData struct {
 	BZ           string `json:"bz"`
 	XTCode       string `json:"xtCode"`
 }
+
+func XTJsonSportDataFromRecord(r Record, bz string) XTJsonSportData {
+	return XTJsonSportData{
+		Result:       toServiceStdDistance(r.Distance),
+		StartTimeStr: toServiceStdTime(r.BeginTime),
+		EndTimeStr:   toServiceStdTime(r.EndTime),
+		IsValid:      1,
+		BZ:           bz,
+		XTCode:       r.xtcode,
+		SchoolID:     r.SchoolID,
+	}
+}
+func (r XTJsonSportData) ToJSON() string {
+	j, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+	return string(j)
+}
+func (r XTJsonSportData) GetStrpa() string {
+	return EncodeString(r.ToJSON())
+}
+
 type XTJsonSportTestData struct {
 	Result       string `json:"results"`
 	StartTimeStr string `json:"beginTime"`
@@ -42,18 +63,18 @@ type XTJsonSportTestData struct {
 	TestTime     int64  `json:"test_time"`
 }
 
-func (r XTJsonSportData) ToJSON() string {
-	j, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
+func XTJsonSportTestDataFromRecord(r Record, bz string) XTJsonSportTestData {
+	return XTJsonSportTestData{
+		Result:       toServiceStdDistance(r.Distance),
+		StartTimeStr: toServiceStdTime(r.BeginTime),
+		EndTimeStr:   toServiceStdTime(r.EndTime),
+		IsValid:      1,
+		BZ:           bz,
+		XTCode:       r.xtcode,
+		SchoolID:     r.SchoolID,
+		TestTime:     int64(r.EndTime.Sub(r.BeginTime).Seconds()),
 	}
-	return string(j)
 }
-
-func (r XTJsonSportData) GetStrpa() string {
-	return EncodeSportData(r.ToJSON())
-}
-
 func (r XTJsonSportTestData) ToJSON() string {
 	j, err := json.Marshal(r)
 	if err != nil {
@@ -63,10 +84,10 @@ func (r XTJsonSportTestData) ToJSON() string {
 }
 
 func (r XTJsonSportTestData) GetStrpa() string {
-	return EncodeSportData(r.ToJSON())
+	return EncodeString(r.ToJSON())
 }
 
-func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, distance float64, beforeTime time.Time) []Record {
+func SmartCreateRecords(userID int64, schoolID int64, limitParams LimitParams, distance float64, beforeTime time.Time) []Record {
 	records := make([]Record, 0, int(distance/3))
 	remain := distance
 	lastBeginTime := beforeTime
@@ -136,7 +157,7 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams *LimitParams, 
 			Distance:  singleDistance,
 			BeginTime: beginTime,
 			EndTime:   endTime,
-			xtcode:    GetXTcodeV3(userID, toExchangeTimeStr(beginTime), toExchangeDistanceStr(singleDistance)),
+			xtcode:    CalcXTcode(userID, toServiceStdTime(beginTime), toServiceStdDistance(singleDistance)),
 		})
 
 		remain -= singleDistance - tinyPart
@@ -157,36 +178,6 @@ func CreateRecord(userID int64, schoolID int64, distance float64, beforeTime tim
 		BeginTime: beforeTime.Add(-duration),
 		EndTime:   beforeTime,
 	}
-	r.xtcode = GetXTcodeV3(userID, toExchangeTimeStr(r.BeginTime), toExchangeDistanceStr(r.Distance))
+	r.xtcode = CalcXTcode(userID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	return r
-}
-
-func GetXTcode(userId int64, beginTime string) string {
-	key := MD5String(strconv.FormatInt(userId, 10) + beginTime + "stlchang")
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[15])
-	xtCode.WriteByte(key[24])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[17])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[23])
-	return xtCode.String()
-}
-
-func GetXTcodeV2(userId int64, beginTime string, distance string) string {
-	phrase := strconv.FormatInt(userId, 10) + beginTime + distance + "stlchang"
-	key := MD5String(phrase)
-	log.Println(phrase, key)
-	var xtCode bytes.Buffer
-	xtCode.WriteByte(key[7])
-	xtCode.WriteByte(key[3])
-	xtCode.WriteByte(key[15])
-	xtCode.WriteByte(key[24])
-	xtCode.WriteByte(key[9])
-	xtCode.WriteByte(key[17])
-	xtCode.WriteByte(key[29])
-	xtCode.WriteByte(key[23])
-	return xtCode.String()
 }
