@@ -26,8 +26,8 @@ func PasswordHash(raw string) string {
 }
 
 func GenerateIMEI() string {
-	r1, r2 := 1000000+randRange(0, 8999999), 1000000+randRange(0, 8999999)
-	input := strconv.Itoa(r1) + strconv.Itoa(r2)
+	r1, r2 := 10000 + randRange(0, 89999), 1000000+randRange(0, 8999999)
+	input := "86" + strconv.Itoa(r1) + strconv.Itoa(r2)
 	var a, b int32 = 0, 0
 	for i, tt := range input {
 		if i%2 == 0 {
@@ -49,5 +49,12 @@ func GenerateIMEI() string {
 func RandModel() string {
 	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	index := randRange(0, len(letters)-1)
-	return letters[index:index+1] + strconv.Itoa(randRange(1, 999))
+	index2 := randRange(0, len(letters)-1)
+	return letters[index:index+1] + letters[index2:index2+1] + strconv.Itoa(randRange(1, 999)) + "." + strconv.Itoa(randRange(1, 9))
+}
+
+func RandScreen() string {
+	screens := []string{"1080x1920", "1080x2028", "1080x2030"}
+	index := randRange(0, len(screens)-1)
+	return screens[index]
 }
