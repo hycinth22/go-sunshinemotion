@@ -42,7 +42,6 @@ const (
 	DefaultUserAgent  = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
 
 	defaultSchoolId = 60
-	defaultIMSI     = "1234567890"
 	defaultDevice   = "Android,25,7.1.0"
 	AppVersion      = "2.2.7"
 	AppVersionID    = 14
@@ -100,7 +99,7 @@ func (s *Session) LoginEx(stuNum string, phoneNum string, passwordHash string, s
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["imsi"] = []string{s.PhoneIMEI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -207,7 +206,7 @@ func (s *Session) uploadTestRecord(distance float64, beginTime time.Time, endTim
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["imsi"] = []string{s.PhoneIMEI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -245,7 +244,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 		strconv.FormatInt(endTime.Unix(), 10) + ", " +
 		defaultDevice + ", " +
 		s.PhoneIMEI + ", " +
-		defaultIMSI +
+		s.PhoneIMEI +
 		"]"
 	j := XTJsonSportData{
 		Result:       toExchangeDistanceStr(distance),
@@ -275,7 +274,7 @@ func (s *Session) UploadData(distance float64, beginTime time.Time, endTime time
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["imsi"] = []string{s.PhoneIMEI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -329,7 +328,7 @@ func (s *Session) GetSportResult() (r *SportResult, e error) {
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["imsi"] = []string{s.PhoneIMEI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
@@ -408,7 +407,7 @@ func (s *Session) GetAppInfo() (r AppInfo, e error) {
 	req.Header["model"] = []string{s.PhoneModel}
 	req.Header["screen"] = []string{"1080x1920"}
 	req.Header["imei"] = []string{s.PhoneIMEI}
-	req.Header["imsi"] = []string{defaultIMSI}
+	req.Header["imsi"] = []string{s.PhoneIMEI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
