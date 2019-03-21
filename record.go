@@ -170,13 +170,13 @@ func SmartCreateRecords(userID int64, schoolID int64, limitParams LimitParams, d
 	}
 	return reverse
 }
-func CreateRecord(userID int64, schoolID int64, distance float64, beforeTime time.Time, duration time.Duration) Record {
+func CreateRecord(userID int64, schoolID int64, distance float64, endTime time.Time, duration time.Duration) Record {
 	r := Record{
 		UserID:    userID,
 		SchoolID:  schoolID,
 		Distance:  distance,
-		BeginTime: beforeTime.Add(-duration),
-		EndTime:   beforeTime,
+		BeginTime: endTime.Add(-duration),
+		EndTime:   endTime,
 	}
 	r.xtcode = CalcXTcode(userID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	return r
