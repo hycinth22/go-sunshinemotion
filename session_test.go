@@ -14,6 +14,15 @@ func init() {
 	session = CreateSession()
 	_, loginErr = session.Login(60, "091840426", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
 }
+
+func TestGetSchoolList(t *testing.T) {
+	r, err := CreateSession().GetSchoolList()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	t.Logf("%+v", r)
+}
+
 func TestLoginEx(t *testing.T) {
 	if loginErr != nil {
 		t.Log(loginErr.Error())
@@ -47,7 +56,7 @@ func TestSession_UploadSingleData(t *testing.T) {
 	}
 }
 func TestSession_UploadData(t *testing.T) {
-	// return // Only Test If must required
+	return // Only Test If must required
 	now := time.Now()
 	beijing := time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, beijing)
@@ -89,6 +98,14 @@ func TestSession_GetAppInfo(t *testing.T) {
 		t.Fail()
 	}
 	t.Logf("info: %+v", info)
+}
+
+func TestGetRandRoute(t *testing.T) {
+	r, err := session.GetRandRoute()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	t.Logf("%+v", r)
 }
 
 func Test_makeQuery(t *testing.T) {
