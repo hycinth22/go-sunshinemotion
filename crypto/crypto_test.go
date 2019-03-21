@@ -4,6 +4,29 @@ import (
 	"testing"
 )
 
+func TestCalcDBXTcode(t *testing.T) {
+	tests := []struct {
+		name      string
+		userID    int64
+		beginTime string
+		distance  string
+		xtcode    string
+	}{
+		{"empty case", 0, "", "", "9D762700D9BCEF2D04BCB2D3DEF6B35D"},
+		{"normal case 1", 11732, "2019-03-19 14:38:02", "0.000", "2012AAA887F6958E344114DFB5E6A3EB"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			expect := test.xtcode
+			actual := CalcDBXTcode(test.userID, test.beginTime, test.distance)
+			if actual != expect {
+				t.Errorf(`test case failed. %v xtcode should be %s but %s`, test, expect, actual)
+				t.Fail()
+			}
+		})
+	}
+}
+
 func TestCalcXTcode(t *testing.T) {
 	tests := []struct {
 		name      string
