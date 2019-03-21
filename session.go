@@ -51,20 +51,20 @@ func CreateSession() *Session {
 }
 
 func (s *Session) setHTTPHeader(req *http.Request) {
+	req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	req.Header["UserID"] = []string{strconv.FormatInt(s.User.UserID, 10)}
 	req.Header["TokenID"] = []string{s.Token.TokenID}
 	req.Header["app"] = []string{AppPackageName}
-	req.Header["ver"] = []string{AppVersion}
-	req.Header["device"] = []string{s.Device.DeviceName}
-	req.Header["model"] = []string{s.Device.ModelType}
-	req.Header["screen"] = []string{s.Device.Screen}
-	req.Header["imei"] = []string{s.Device.IMEI}
-	req.Header["imsi"] = []string{s.Device.IMSI}
+	req.Header["Ver"] = []string{AppVersion}
+	req.Header["Device"] = []string{s.Device.DeviceName}
+	req.Header["Model"] = []string{s.Device.ModelType}
+	req.Header["Screen"] = []string{s.Device.Screen}
+	req.Header["IMEI"] = []string{s.Device.IMEI}
+	req.Header["IMSI"] = []string{s.Device.IMSI}
 	req.Header["crack"] = []string{"0"}
 	req.Header["latitude"] = []string{"0.0"}
 	req.Header["longitude"] = []string{"0.0"}
 	req.Header["VerID"] = []string{strconv.FormatInt(AppVersionID, 10)}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("User-Agent", s.Device.UserAgent)
 }
 
