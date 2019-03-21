@@ -14,6 +14,7 @@ func TestCalcDBXTcode(t *testing.T) {
 	}{
 		{"empty case", 0, "", "", "9D762700D9BCEF2D04BCB2D3DEF6B35D"},
 		{"normal case 1", 11732, "2019-03-19 14:38:02", "0.000", "2012AAA887F6958E344114DFB5E6A3EB"},
+		{"normal case 2", 11732, "2019-03-19 14:38:02", "2.111", "E25A9F8F6A83DDA8F069E3DFAE626CB7"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -39,6 +40,7 @@ func TestCalcXTcode(t *testing.T) {
 		{"normal case 1", 1234, "2006-01-02 15:04:05", "3.410", "ED9335F08B363EF8C9954302EE84547F"},
 		{"normal case 2", 5678, "2017-02-03 16:05:06", "4.520", "38A2FDC3A89C6200CE41BF0639F145ED"},
 		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.630", "1630BC477C9BB0150773434F9A07C0DD"},
+		{"normal case 4", 11732, "2019-03-19 14:38:02", "2.111", "E52032D81713BAC79DE21C2BF0B68C2F"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
