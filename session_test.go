@@ -12,7 +12,7 @@ var loginErr error
 
 func init() {
 	session = CreateSession()
-	_, loginErr = session.Login(60, "091840822", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	_, loginErr = session.Login(60, "091840426", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
 }
 func TestLoginEx(t *testing.T) {
 	if loginErr != nil {
@@ -30,8 +30,24 @@ func TestGetSportResult(t *testing.T) {
 	t.Logf("%+v", r)
 }
 
-func TestSession_UploadData(t *testing.T) {
+func TestSession_UploadSingleData(t *testing.T) {
 	return // Only Test If must required
+	r := Record{
+		UserID:    11732,
+		SchoolID:  60,
+		Distance:  2.111,
+		BeginTime: time.Date(2019, 3, 19, 14, 38, 2, 0, time.Local),
+		EndTime:   time.Date(2019, 3, 19, 14, 58, 7, 0, time.Local),
+	}
+	r.xtcode = CalcXTcode(r.UserID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
+	err := session.UploadRecord(r)
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
+}
+func TestSession_UploadData(t *testing.T) {
+	// return // Only Test If must required
 	now := time.Now()
 	beijing := time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, beijing)
@@ -40,7 +56,7 @@ func TestSession_UploadData(t *testing.T) {
 		LimitSingleDistance: Float64Range{2.0, 4.0},
 		LimitTotalDistance:  Float64Range{2.0, 5.0},
 		MinuteDuration:      IntRange{35, 50},
-	}, 2, endTime)
+	}, 3, endTime)
 
 	for _, r := range records {
 		t.Logf("%+v", r)
