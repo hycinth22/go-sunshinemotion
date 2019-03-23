@@ -172,7 +172,7 @@ func (s *Session) UploadRecord(record Record) (e error) {
 		s.setRandomDevice()
 	}
 	bz := EncodeString("[ccxyct:" +
-		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) + ", " +
+		strconv.FormatInt(record.EndTime.UnixNano()/1000000, 10) + ", " +
 		s.Device.DeviceName + ", " +
 		s.Device.IMEI + ", " +
 		s.Device.IMSI +
@@ -214,7 +214,7 @@ func (s *Session) UploadTestRecord(record Record) (e error) {
 		s.setRandomDevice()
 	}
 	bz := EncodeString("[ccxyct:" +
-		strconv.FormatInt(time.Now().UnixNano()/1000000, 10) +
+		strconv.FormatInt(record.EndTime.UnixNano()/1000000, 10) +
 		"]")
 	sportData := XTJsonSportTestDataFromRecord(record, bz)
 	fmt.Println("sportData:", sportData)
