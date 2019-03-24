@@ -61,6 +61,9 @@ func (s *Session) setHTTPHeader(req *http.Request) {
 		s.setHTTPHeaderWithoutLogin(req)
 		return
 	}
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
 	req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	req.Header["UserID"] = []string{strconv.FormatInt(s.User.UserID, 10)}
 	req.Header["TokenID"] = []string{s.Token.TokenID}
@@ -78,6 +81,9 @@ func (s *Session) setHTTPHeader(req *http.Request) {
 	req.Header.Set("User-Agent", s.Device.UserAgent)
 }
 func (s *Session) setHTTPHeaderWithoutLogin(req *http.Request) {
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
 	req.Header["Content-Type"] = []string{"application/x-www-form-urlencoded"}
 	req.Header["UserID"] = []string{"0"}
 	req.Header["TokenID"] = []string{""}
@@ -330,6 +336,9 @@ type AppInfo struct {
 
 // Fetch the latest app info
 func (s *Session) GetAppInfo() (r AppInfo, e error) {
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
 	req, err := http.NewRequest(http.MethodPost, getAppInfoURL, nil)
 	if err != nil {
 		e = fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
