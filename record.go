@@ -103,7 +103,7 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 			break
 		}
 		// 时间间隔随机化
-		randomDuration := time.Duration(randRange(limitParams.MinuteDuration.Min, limitParams.MinuteDuration.Max)) * time.Minute
+		randomDuration := time.Duration(randRangeFloat(limitParams.MinutePerKM.Min*singleDistance, limitParams.MinutePerKM.Max*singleDistance, 3)) * time.Minute
 		randomDuration += time.Duration(randRange(0, 60)) * time.Second // 时间间隔秒级随机化
 
 		beginTime := lastEndTime.Add(time.Duration(randRange(1, 30))*time.Minute + time.Duration(randRange(1, 60))*time.Second)
@@ -140,7 +140,7 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 			break
 		}
 		// 时间间隔随机化
-		randomDuration := time.Duration(randRange(limitParams.MinuteDuration.Min, limitParams.MinuteDuration.Max)) * time.Minute
+		randomDuration := time.Duration(randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max, 3)) * time.Minute
 		randomDuration += time.Duration(randRange(0, 60)) * time.Second // 时间间隔秒级随机化
 
 		endTime := lastBeginTime.Add(-time.Duration(randRange(1, 30))*time.Minute - time.Duration(randRange(1, 60))*time.Second)

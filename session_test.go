@@ -60,12 +60,7 @@ func TestSession_UploadData(t *testing.T) {
 	now := time.Now()
 	beijing := time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, beijing)
-	records := SmartCreateRecords(session.User.UserID, session.User.SchoolID, LimitParams{
-		RandDistance:        Float64Range{3.6, 4.0},
-		LimitSingleDistance: Float64Range{2.0, 4.0},
-		LimitTotalDistance:  Float64Range{2.0, 5.0},
-		MinuteDuration:      IntRange{35, 50},
-	}, 3, endTime)
+	records := SmartCreateRecords(session.User.UserID, session.User.SchoolID, GetDefaultLimitParams("F"), 3, endTime)
 
 	for _, r := range records {
 		t.Logf("%+v", r)

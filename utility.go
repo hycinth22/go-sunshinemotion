@@ -3,6 +3,7 @@ package ssmt
 import (
 	"crypto/md5"
 	"fmt"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -22,8 +23,14 @@ func init() {
 }
 
 // min and max is both in the range
-func randRange(min int, max int) int {
-	return min + rand.Int()%(max-min+1)
+func randRange(min, max int) int {
+	return min + rand.Intn(max-min+1)
+}
+
+// min and max is both in the range
+func randRangeFloat(min, max float64, pre int) float64 {
+	k := float64(math.Pow10(pre))
+	return float64(randRange(int(min*k), int(max*k))) / k
 }
 
 func MD5String(raw string) string {

@@ -7,8 +7,8 @@ type LimitParams struct {
 	LimitSingleDistance Float64Range
 	// 限制区间（所有记录总和的限制区间）
 	LimitTotalDistance Float64Range
-	// 每条记录的时间区间
-	MinuteDuration IntRange
+	// 每公里的分钟系数区间
+	MinutePerKM Float64Range
 }
 
 func GetDefaultLimitParams(sex string) LimitParams {
@@ -20,14 +20,14 @@ func GetDefaultLimitParams(sex string) LimitParams {
 			RandDistance:        Float64Range{2.5, 3.0},
 			LimitSingleDistance: Float64Range{1.0, 3.0},
 			LimitTotalDistance:  Float64Range{1.0, 3.0},
-			MinuteDuration:      IntRange{25, 35},
+			MinutePerKM:         Float64Range{6.0, 13.0},
 		}
 	case "M":
 		return LimitParams{
 			RandDistance:        Float64Range{4.5, 5.0},
 			LimitSingleDistance: Float64Range{2.0, 5.0},
 			LimitTotalDistance:  Float64Range{2.0, 5.0},
-			MinuteDuration:      IntRange{45, 65},
+			MinutePerKM:         Float64Range{8.0, 14.0},
 		}
 	}
 	return LimitParams{}
