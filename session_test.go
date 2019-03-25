@@ -9,10 +9,12 @@ import (
 
 var session *Session
 var loginErr error
+var info UserInfo
+var beijingZone = time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 
 func init() {
 	session = CreateSession()
-	_, loginErr = session.Login(60, "091840426", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	info, loginErr = session.Login(60, "091840426", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
 }
 
 func TestGetSchoolList(t *testing.T) {
@@ -32,6 +34,8 @@ func TestLoginEx(t *testing.T) {
 }
 
 func TestGetSportResult(t *testing.T) {
+
+	t.Logf("%+v %+v", info, *session)
 	r, err := session.GetSportResult()
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -57,13 +61,11 @@ func TestSession_UploadSingleData(t *testing.T) {
 }
 func TestSession_UploadData(t *testing.T) {
 	return // Only Test If must required
-	now := time.Now()
-	beijing := time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
-	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, beijing)
-	records := SmartCreateRecords(session.User.UserID, session.User.SchoolID, GetDefaultLimitParams("F"), 3, endTime)
-
+	endTime := time.Now()
+	records := SmartCreateRecordsBefore(session.User.SchoolID, session.User.UserID, GetDefaultLimitParams(info.Sex), 3, endTime)
 	for _, r := range records {
 		t.Logf("%+v", r)
+		// var err error = nil
 		err := session.UploadRecord(r)
 		if err != nil {
 			t.Error(err)
