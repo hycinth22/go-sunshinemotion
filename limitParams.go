@@ -20,7 +20,7 @@ func GetDefaultLimitParams(sex string) LimitParams {
 			RandDistance:        Float64Range{2.5, 3.0},
 			LimitSingleDistance: Float64Range{1.0, 3.0},
 			LimitTotalDistance:  Float64Range{1.0, 3.0},
-			MinutePerKM:         Float64Range{6.0, 13.0},
+			MinutePerKM:         Float64Range{7.0, 13.0},
 		}
 	case "M":
 		return LimitParams{
