@@ -215,7 +215,7 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 		return 0.0
 	}
 	if singleDistance > limitParams.LimitSingleDistance.Max {
-		singleDistance = limitParams.LimitSingleDistance.Max
+		singleDistance = limitParams.LimitSingleDistance.Max - 0.1
 	}
 	return singleDistance
 }
