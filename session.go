@@ -165,7 +165,7 @@ func (s *Session) Login(schoolID int64, stuNum string, phoneNum string, password
 	if err != nil {
 		return UserInfo{}, err
 	}
-	s.User.UserID, s.User.SchoolID, s.User.StuNum = loginResult.UserID, loginResult.UserInfo.SchoolID, stuNum
+	s.User.UserID, s.User.SchoolID, s.User.StuNum = loginResult.UserID, schoolID, stuNum
 	s.Token.TokenID, s.Token.ExpirationTime = loginResult.TokenID, time.Unix(0, loginResult.UserExpirationTime*1000000)
 	return loginResult.UserInfo, nil
 }
