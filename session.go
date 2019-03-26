@@ -42,6 +42,7 @@ const (
 	getAppInfoURL     = serverAPIRoot + "/sunShine_Sports/xtGetAppInfo.action"
 	getSchoolURL      = serverAPIRoot + "/sunShine_Sports/xtGetSchool.action"
 	getRandRouteURL   = serverAPIRoot + "/sunShine_Sports/xtGetRandRoute.action"
+	getTestRuleURL    = serverAPIRoot + "/sunShine_Sports/getTestRule.action"
 
 	AppPackageName = "com.ccxyct.sunshinemotion"
 	AppVersion     = "2.2.7"
@@ -493,4 +494,48 @@ func (s *Session) GetSchoolList() (r SchoolList, e error) {
 	}
 
 	return httpResult.SchoolList, nil
+}
+
+func (s *Session) GetTestRule() (r TestRule, e error) {
+	if s.Device == nil {
+		s.setRandomDevice()
+	}
+	req, err := http.NewRequest(http.MethodPost, getTestRuleURL+"?"+url.Values{
+		"school_id": {strconv.FormatInt(s.User.SchoolID, 10)},
+	}.Encode(), nil)
+	if err != nil {
+		e = fmt.Errorf("HTTP Create Request Failed. %s", err.Error())
+		return
+	}
+	s.setHTTPHeader(req)
+	resp, err := http.DefaultClient.Do(req)
+	if resp != nil && resp.Body != nil {
+		defer resp.Body.Close()
+	}
+	if err != nil {
+		e = fmt.Errorf("HTTP Send Request Failed! %s", err.Error())
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		e = fmt.Errorf("HTTP Get Failed Resp! %s", http.StatusText(resp.StatusCode))
+		return
+	}
+	var httpResult struct {
+		Status       int64    `json:"Status"`
+		ErrorMessage string   `json:"ErrorMessage"`
+		Rule         TestRule `json:"TestRule"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&httpResult)
+	if err != nil {
+		e = fmt.Errorf("reslove Failed. %s", err.Error())
+		return
+	}
+
+	err = translateServiceError(httpResult.Status, httpResult.ErrorMessage)
+	if err != nil {
+		e = err
+		return
+	}
+
+	return httpResult.Rule, nil
 }
