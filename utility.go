@@ -19,7 +19,7 @@ type IntRange struct {
 }
 
 func init() {
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 }
 
 // min and max is both in the range
