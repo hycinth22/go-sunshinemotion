@@ -19,6 +19,7 @@ type IntRange struct {
 }
 
 func init() {
+	// TODO: 寻找更好的随机数种子方法，如/dev/random
 	rand.Seed(time.Now().UnixNano())
 }
 
@@ -76,6 +77,6 @@ func RandScreen() string {
 }
 
 func NormalizeDistance(distance float64) (normalizeDistance float64) {
-	_, _ = fmt.Sscanf(fmt.Sprintf("%.2f", distance), "%f", &normalizeDistance)
+	_, _ = fmt.Sscanf(fmt.Sprintf("%.3f", distance), "%f", &normalizeDistance)
 	return
 }
