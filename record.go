@@ -217,10 +217,14 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 	if singleDistance > limitParams.LimitSingleDistance.Max {
 		singleDistance = limitParams.LimitSingleDistance.Max - 0.1
 	}
-	return singleDistance
+	return NormalizeDistance(singleDistance)
 }
 
 func CreateRecord(userID int64, schoolID int64, distance float64, endTime time.Time, duration time.Duration) Record {
+	return createRecord(userID, schoolID, NormalizeDistance(distance), endTime, duration)
+}
+
+func createRecord(userID int64, schoolID int64, distance float64, endTime time.Time, duration time.Duration) Record {
 	r := Record{
 		UserID:    userID,
 		SchoolID:  schoolID,

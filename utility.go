@@ -74,3 +74,8 @@ func RandScreen() string {
 	index := randRange(0, len(screens)-1)
 	return screens[index]
 }
+
+func NormalizeDistance(distance float64) (normalizeDistance float64) {
+	_, _ = fmt.Sscanf(fmt.Sprintf("%.2f", distance), "%f", &normalizeDistance)
+	return
+}
