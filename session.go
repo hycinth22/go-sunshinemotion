@@ -45,8 +45,8 @@ const (
 	getTestRuleURL    = serverAPIRoot + "/sunShine_Sports/getTestRule.action"
 
 	AppPackageName = "com.ccxyct.sunshinemotion"
-	AppVersion     = "2.2.7"
-	AppVersionID   = 14
+	AppVersion     = "2.2.10"
+	AppVersionID   = 15
 )
 
 func (s *Session) setRandomDevice() {

@@ -14,7 +14,7 @@ var beijingZone = time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 
 func init() {
 	session = CreateSession()
-	info, loginErr = session.Login(60, "091840426", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	info, loginErr = session.Login(60, "091840523", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456a"))))
 }
 
 func TestGetSchoolList(t *testing.T) {
@@ -34,7 +34,6 @@ func TestLoginEx(t *testing.T) {
 }
 
 func TestGetSportResult(t *testing.T) {
-
 	t.Logf("%+v %+v", info, *session)
 	r, err := session.GetSportResult()
 	if err != nil {
@@ -46,11 +45,12 @@ func TestGetSportResult(t *testing.T) {
 func TestSession_UploadSingleData(t *testing.T) {
 	return // Only Test If must required
 	r := Record{
-		UserID:    11732,
+		UserID:    9593,
 		SchoolID:  60,
-		Distance:  2.111,
-		BeginTime: time.Date(2019, 3, 19, 14, 38, 2, 0, time.Local),
-		EndTime:   time.Date(2019, 3, 19, 14, 58, 7, 0, time.Local),
+		Distance:  0.000,
+		BeginTime: time.Date(2019, 4, 27, 21, 39, 43, 0, time.Local),
+		EndTime:   time.Date(2019, 4, 27, 21, 39, 47, 0, time.Local),
+		IsValid:   false,
 	}
 	r.xtcode = CalcXTcode(r.UserID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	err := session.UploadRecord(r)

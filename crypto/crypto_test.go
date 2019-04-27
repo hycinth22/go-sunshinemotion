@@ -43,11 +43,13 @@ func TestCalcXTcode(t *testing.T) {
 		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.630", "1630BC477C9BB0150773434F9A07C0DD"},
 		{"normal case 4", 11732, "2019-03-19 14:38:02", "2.111", "E52032D81713BAC79DE21C2BF0B68C2F"},
 		{"normal case 5", 11732, "2019-03-20 14:38:02", "2.333", "A10AB35A7AE2D2E1564587324406BCD5"},
+		{"normal case 6", 9593, "2019-04-27 21:31:58", "0.000", "E295C45BFAC2B469E659EEFFD04EBDED"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			expect := test.xtcode
 			actual := CalcXTcode(test.userID, test.beginTime, test.distance)
+			t.Logf("%+v %s", test, actual)
 			if actual != expect {
 				t.Errorf(`test case failed. %v xtcode should be %s but %s`, test, expect, actual)
 				t.Fail()
