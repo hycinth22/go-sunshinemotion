@@ -13,6 +13,7 @@ type Record struct {
 	BeginTime time.Time
 	EndTime   time.Time
 	xtcode    string
+	IsValid   bool
 }
 
 type IXTJsonSportData interface {
@@ -31,7 +32,7 @@ type XTJsonSportData struct {
 }
 
 func XTJsonSportDataFromRecord(r Record, bz string) XTJsonSportData {
-	return XTJsonSportData{
+	d := XTJsonSportData{
 		Result:       toServiceStdDistance(r.Distance),
 		StartTimeStr: toServiceStdTime(r.BeginTime),
 		EndTimeStr:   toServiceStdTime(r.EndTime),
@@ -40,6 +41,10 @@ func XTJsonSportDataFromRecord(r Record, bz string) XTJsonSportData {
 		XTCode:       r.xtcode,
 		SchoolID:     r.SchoolID,
 	}
+	if !r.IsValid {
+		d.IsValid = 0
+	}
+	return d
 }
 func (r XTJsonSportData) ToJSON() string {
 	j, err := json.Marshal(r)
@@ -64,7 +69,7 @@ type XTJsonSportTestData struct {
 }
 
 func XTJsonSportTestDataFromRecord(r Record, bz string) XTJsonSportTestData {
-	return XTJsonSportTestData{
+	d := XTJsonSportTestData{
 		Result:       toServiceStdDistance(r.Distance),
 		StartTimeStr: toServiceStdTime(r.BeginTime),
 		EndTimeStr:   toServiceStdTime(r.EndTime),
@@ -74,6 +79,10 @@ func XTJsonSportTestDataFromRecord(r Record, bz string) XTJsonSportTestData {
 		SchoolID:     r.SchoolID,
 		TestTime:     int64(r.EndTime.Sub(r.BeginTime).Seconds()),
 	}
+	if !r.IsValid {
+		d.IsValid = 0
+	}
+	return d
 }
 func (r XTJsonSportTestData) ToJSON() string {
 	j, err := json.Marshal(r)
@@ -85,11 +94,6 @@ func (r XTJsonSportTestData) ToJSON() string {
 
 func (r XTJsonSportTestData) GetStrpa() string {
 	return EncodeString(r.ToJSON())
-}
-
-// DEPRECATED, use SmartCreateRecordsBefore instead.
-func SmartCreateRecords(userID int64, schoolID int64, limitParams LimitParams, distance float64, beforeTime time.Time) []Record {
-	return SmartCreateRecordsBefore(schoolID, userID, limitParams, distance, beforeTime)
 }
 
 func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitParams, distance float64, afterTime time.Time) []Record {
@@ -110,14 +114,7 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 		beginTime := lastEndTime.Add(time.Duration(randRange(1, 30))*time.Minute + time.Duration(randRange(1, 60))*time.Second)
 		endTime := beginTime.Add(randomDuration)
 
-		records = append(records, Record{
-			UserID:    userID,
-			SchoolID:  schoolID,
-			Distance:  singleDistance,
-			BeginTime: beginTime,
-			EndTime:   endTime,
-			xtcode:    CalcXTcode(userID, toServiceStdTime(beginTime), toServiceStdDistance(singleDistance)),
-		})
+		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), endTime, randomDuration))
 
 		remain -= singleDistance
 		lastEndTime = endTime
@@ -148,14 +145,7 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 		endTime := lastBeginTime.Add(-time.Duration(randRange(1, 30))*time.Minute - time.Duration(randRange(1, 60))*time.Second)
 		beginTime := endTime.Add(-randomDuration)
 
-		records = append(records, Record{
-			UserID:    userID,
-			SchoolID:  schoolID,
-			Distance:  singleDistance,
-			BeginTime: beginTime,
-			EndTime:   endTime,
-			xtcode:    CalcXTcode(userID, toServiceStdTime(beginTime), toServiceStdDistance(singleDistance)),
-		})
+		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), endTime, randomDuration))
 
 		remain -= singleDistance
 		lastBeginTime = beginTime
@@ -231,6 +221,7 @@ func createRecord(userID int64, schoolID int64, distance float64, endTime time.T
 		Distance:  distance,
 		BeginTime: endTime.Add(-duration),
 		EndTime:   endTime,
+		IsValid:   true,
 	}
 	r.xtcode = CalcXTcode(userID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	return r
