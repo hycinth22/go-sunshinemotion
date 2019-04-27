@@ -53,13 +53,13 @@ func TestNormalizeDistance(t *testing.T) {
 		value    float64
 		expected float64
 	}{
-		{4.44444, 4.44},
-		{4.9999, 5.00},
-		{4.5999, 4.60},
+		{4.44444, 4.444},
+		{4.9999, 5.000},
+		{4.5999, 4.600},
 	}
 	for _, c := range test {
 		actual := NormalizeDistance(c.value)
-		t.Log(c.value, actual)
+		t.Log(c.value, c.expected, actual)
 		if actual != c.expected {
 			t.Fail()
 		}
