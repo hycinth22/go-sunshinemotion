@@ -11,6 +11,8 @@ type LimitParams struct {
 	MinutePerKM Float64Range
 }
 
+const EPSILON_Distance = 0.00999
+
 func GetDefaultLimitParams(sex string) LimitParams {
 	// 参数设定：
 	// MinuteDuration: min>minDis*3, max<maxDis*10
