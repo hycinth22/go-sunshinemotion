@@ -103,7 +103,7 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 	println("distance", distance)
 	for remain > 0 {
 		singleDistance := smartCreateDistance(schoolID, userID, limitParams, remain)
-		if singleDistance == 0.0 {
+		if singleDistance <= 0.0+EPSILON_Distance {
 			break
 		}
 		// 时间间隔随机化
@@ -134,7 +134,7 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 	println("distance", distance)
 	for remain > 0 {
 		singleDistance := smartCreateDistance(schoolID, userID, limitParams, remain)
-		if singleDistance == 0.0 {
+		if singleDistance <= 0.0+EPSILON_Distance {
 			break
 		}
 		// 时间间隔随机化
@@ -159,11 +159,12 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 }
 
 func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, remain float64) (singleDistance float64) {
+	const tinyPartLimit = 0.10
 	// 范围取随机
 	// 会检查是否下一条可能丢弃较大的距离，防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
 	if remain >= 2*limitParams.LimitSingleDistance.Max {
 		// 剩余足够大，正常取随机值
-		singleDistance = randRangeFloat(limitParams.RandDistance.Min, limitParams.RandDistance.Max)
+		singleDistance = randRangeFloat(limitParams.RandDistance.Min, limitParams.RandDistance.Max-tinyPartLimit)
 		println("p1", singleDistance)
 	} else if remain >= 2*limitParams.LimitSingleDistance.Min {
 		// 即将耗尽，首先尝试放入一条记录内，否则为下一条预留
@@ -178,7 +179,7 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 		// 剩余的符合最小限制距离，直接使用剩余的生成最后一条记录
 		singleDistance = remain
 		println("p3", singleDistance)
-	} else if remain > 0.1 {
+	} else if remain > EPSILON_Distance {
 		println("检查算法正确性", remain)
 		return 0.0
 	} else {
@@ -187,7 +188,7 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 	}
 
 	// 小数部分随机化 -0.09 ~ 0.09
-	tinyPart := randRangeFloat(0.0, 0.099999)
+	tinyPart := randRangeFloat(0.0, tinyPartLimit)
 	switch r := singleDistance + tinyPart; {
 	case r < limitParams.LimitSingleDistance.Min:
 		singleDistance = limitParams.LimitSingleDistance.Min
@@ -198,14 +199,14 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 		singleDistance += tinyPart
 	}
 
-	// 检测结果合法性，由于TinyPart允许上下浮动0.1
-	if singleDistance < limitParams.LimitSingleDistance.Min-0.1 {
+	// 检测结果合法性
+	if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 		// 丢弃不合法距离
 		log.Println("Drop distance: ", singleDistance)
 		return 0.0
 	}
 	if singleDistance > limitParams.LimitSingleDistance.Max {
-		singleDistance = limitParams.LimitSingleDistance.Max - 0.1
+		singleDistance = limitParams.LimitSingleDistance.Max - EPSILON_Distance
 	}
 	return NormalizeDistance(singleDistance)
 }
