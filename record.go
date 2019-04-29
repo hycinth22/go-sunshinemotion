@@ -107,7 +107,7 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 			break
 		}
 		// 时间间隔随机化
-		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max, 3)
+		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max)
 		randomDuration := time.Duration(distance * minutePerKM * float64(time.Minute))
 		println("randomDuration:", randomDuration.String())
 
@@ -138,7 +138,7 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 			break
 		}
 		// 时间间隔随机化
-		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max, 3)
+		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max)
 		randomDuration := time.Duration(distance * minutePerKM * float64(time.Minute))
 		println("randomDuration:", randomDuration.String())
 
@@ -163,7 +163,7 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 	// 会检查是否下一条可能丢弃较大的距离，防止：剩下比较多，但却不满足最小限制距离，不能生成下一条记录
 	if remain >= 2*limitParams.LimitSingleDistance.Max {
 		// 剩余足够大，正常取随机值
-		singleDistance = float64(randRange(int(limitParams.RandDistance.Min*1000), int(limitParams.RandDistance.Max*1000))) / 1000
+		singleDistance = randRangeFloat(limitParams.RandDistance.Min, limitParams.RandDistance.Max)
 		println("p1", singleDistance)
 	} else if remain >= 2*limitParams.LimitSingleDistance.Min {
 		// 即将耗尽，首先尝试放入一条记录内，否则为下一条预留
@@ -187,7 +187,7 @@ func smartCreateDistance(schoolID int64, userID int64, limitParams LimitParams, 
 	}
 
 	// 小数部分随机化 -0.09 ~ 0.09
-	tinyPart := float64(randRange(0, 99999)) / 1000000
+	tinyPart := randRangeFloat(0.0, 0.099999)
 	switch r := singleDistance + tinyPart; {
 	case r < limitParams.LimitSingleDistance.Min:
 		singleDistance = limitParams.LimitSingleDistance.Min

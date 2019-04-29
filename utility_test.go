@@ -40,7 +40,7 @@ func TestRandRangeFloat(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		min := -1231231.1
 		max := 32221232132.20123
-		n := randRangeFloat(min, max, 3)
+		n := randRangeFloat(min, max)
 		t.Log(n)
 		if n < min || n > max {
 			t.FailNow()
