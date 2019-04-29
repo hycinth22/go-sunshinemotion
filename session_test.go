@@ -52,7 +52,6 @@ func TestSession_UploadSingleData(t *testing.T) {
 		EndTime:   time.Date(2019, 4, 27, 21, 39, 47, 0, time.Local),
 		IsValid:   false,
 	}
-	r.xtcode = CalcXTcode(r.UserID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	err := session.UploadRecord(r)
 	if err != nil {
 		t.Error(err)

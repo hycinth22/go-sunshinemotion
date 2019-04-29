@@ -12,7 +12,6 @@ type Record struct {
 	Distance  float64
 	BeginTime time.Time
 	EndTime   time.Time
-	xtcode    string
 	IsValid   bool
 }
 
@@ -38,12 +37,12 @@ func XTJsonSportDataFromRecord(r Record, bz string) XTJsonSportData {
 		EndTimeStr:   toServiceStdTime(r.EndTime),
 		IsValid:      1,
 		BZ:           bz,
-		XTCode:       r.xtcode,
 		SchoolID:     r.SchoolID,
 	}
 	if !r.IsValid {
 		d.IsValid = 0
 	}
+	d.XTCode = CalcXTcode(r.UserID, d.StartTimeStr, d.Result)
 	return d
 }
 func (r XTJsonSportData) ToJSON() string {
@@ -75,13 +74,13 @@ func XTJsonSportTestDataFromRecord(r Record, bz string) XTJsonSportTestData {
 		EndTimeStr:   toServiceStdTime(r.EndTime),
 		IsValid:      1,
 		BZ:           bz,
-		XTCode:       r.xtcode,
 		SchoolID:     r.SchoolID,
 		TestTime:     int64(r.EndTime.Sub(r.BeginTime).Seconds()),
 	}
 	if !r.IsValid {
 		d.IsValid = 0
 	}
+	d.XTCode = CalcXTcode(r.UserID, d.StartTimeStr, d.Result)
 	return d
 }
 func (r XTJsonSportTestData) ToJSON() string {
@@ -224,6 +223,5 @@ func createRecord(userID int64, schoolID int64, distance float64, endTime time.T
 		EndTime:   endTime,
 		IsValid:   true,
 	}
-	r.xtcode = CalcXTcode(userID, toServiceStdTime(r.BeginTime), toServiceStdDistance(r.Distance))
 	return r
 }
