@@ -1,7 +1,7 @@
 package ssmt
 
 type LimitParams struct {
-	// 随机区间（若还有足够的欲生成的距离， 生成单条记录的的随机距离区间）
+	// 随机区间（若还有足够的欲生成的距离，生成单条记录的的随机距离区间）
 	RandDistance Float64Range
 	// 限制区间（生成单条记录的的硬性限制）
 	LimitSingleDistance Float64Range
@@ -11,7 +11,10 @@ type LimitParams struct {
 	MinutePerKM Float64Range
 }
 
-const EPSILON_Distance = 0.00049999
+const (
+	EPSILON_Distance     = 0.00049999
+	MinDistanceAccurency = 0.001
+)
 
 func GetDefaultLimitParams(sex string) LimitParams {
 	// 参数设定：
