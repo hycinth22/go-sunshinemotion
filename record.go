@@ -120,6 +120,10 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 		lastEndTime = endTime
 		sum += singleDistance
 		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
+			if remain > 0.0+EPSILON_Distance {
+				println("drop remain:", remain)
+				break
+			}
 			break
 		}
 	}
@@ -156,6 +160,10 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 		lastBeginTime = beginTime
 		sum += singleDistance
 		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
+			if remain > 0.0+EPSILON_Distance {
+				println("drop remain:", remain)
+				break
+			}
 			break
 		}
 	}
