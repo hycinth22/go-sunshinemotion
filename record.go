@@ -100,9 +100,10 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 	remain := distance
 	lastEndTime := afterTime
 	println("distance", distance)
+	sum := 0.0
 	for remain > 0 {
-		singleDistance := smartCreateDistance(schoolID, userID, limitParams, remain)
-		if singleDistance <= 0.0+EPSILON_Distance {
+		singleDistance := smartCreateDistance(limitParams, remain)
+		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 			break
 		}
 		// 时间间隔随机化
@@ -117,6 +118,10 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 
 		remain -= singleDistance
 		lastEndTime = endTime
+		sum += singleDistance
+		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
+			break
+		}
 	}
 	nRecord := len(records)
 	reverse := make([]Record, nRecord)
@@ -131,9 +136,10 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 	remain := distance
 	lastBeginTime := beforeTime
 	println("distance", distance)
+	sum := 0.0
 	for remain > 0 {
-		singleDistance := smartCreateDistance(schoolID, userID, limitParams, remain)
-		if singleDistance <= 0.0+EPSILON_Distance {
+		singleDistance := smartCreateDistance(limitParams, remain)
+		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 			break
 		}
 		// 时间间隔随机化
@@ -148,6 +154,10 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 
 		remain -= singleDistance
 		lastBeginTime = beginTime
+		sum += singleDistance
+		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
+			break
+		}
 	}
 	nRecord := len(records)
 	reverse := make([]Record, nRecord)
