@@ -76,8 +76,7 @@ func TestSession_UploadData(t *testing.T) {
 func TestSession_UploadTestRecord(t *testing.T) {
 	return // Only Test If must required
 	now := time.Now()
-	beijing := time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
-	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, beijing)
+	endTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 25, 0, 0, TimeZoneCST)
 	r := CreateRecord(session.User.UserID, session.User.SchoolID, 3.211, endTime, 16*time.Minute+12*time.Second)
 	t.Logf("%+v", r)
 	err := session.UploadTestRecord(r)

@@ -7,11 +7,15 @@ import (
 
 const exchangeTimePattern = "2006-01-02 15:04:05"
 
+var (
+	TimeZoneCST = time.FixedZone("CST", int((8 * time.Hour).Seconds()))
+)
+
 func toServiceStdTime(t time.Time) string {
-	return t.Format(exchangeTimePattern)
+	return t.In(TimeZoneCST).Format(exchangeTimePattern)
 }
 func fromServiceStdTime(s string) (time.Time, error) {
-	return time.Parse(exchangeTimePattern, s)
+	return time.ParseInLocation(exchangeTimePattern, s, TimeZoneCST)
 }
 
 func toServiceStdDistance(d float64) string {
