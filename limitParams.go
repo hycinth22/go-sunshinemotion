@@ -25,7 +25,7 @@ func GetDefaultLimitParams(sex string) LimitParams {
 	switch sex {
 	case "F":
 		return LimitParams{
-			RandDistance:          Float64Range{2.5, 3.0},
+			RandDistance:          Float64Range{2.85, 3.0},
 			LimitSingleDistance:   Float64Range{1.0, 3.0},
 			LimitTotalDistance:    Float64Range{1.0, 3.0},
 			LimitTotalMaxDistance: 3.0,
@@ -33,7 +33,7 @@ func GetDefaultLimitParams(sex string) LimitParams {
 		}
 	case "M":
 		return LimitParams{
-			RandDistance:          Float64Range{4.5, 5.0},
+			RandDistance:          Float64Range{4.85, 5.0},
 			LimitSingleDistance:   Float64Range{2.0, 5.0},
 			LimitTotalDistance:    Float64Range{2.0, 5.0},
 			LimitTotalMaxDistance: 5.0,
