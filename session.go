@@ -262,7 +262,7 @@ func makeQuery(d IXTJsonSportData) string {
 }
 
 type SportResult struct {
-	UserID            int64     // 用户ID
+	UserID            int64     // 用户ID，作废字段，目前暂时恒为0
 	Year              int       // 年度
 	Term              string    // 学期
 	QualifiedDistance float64   // 达标距离

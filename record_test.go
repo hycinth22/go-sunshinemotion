@@ -20,6 +20,7 @@ func TestSmartCreateDistance(t *testing.T) {
 		{"std f", flimit, flimit.LimitTotalDistance.Max - MinDistanceAccurency},
 		{"std m", mlimit, mlimit.LimitTotalDistance.Max - MinDistanceAccurency},
 	}
+	strict := false
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			for i := 0; i < 10000; i++ {
@@ -28,8 +29,12 @@ func TestSmartCreateDistance(t *testing.T) {
 					println("remain", remain)
 					distance := smartCreateDistance(test.limit, remain)
 					t.Log("smartCreateDistance ", distance)
-					if distance < test.limit.LimitSingleDistance.Min+EPSILON_Distance || distance >= test.limit.LimitSingleDistance.Max-EPSILON_Distance {
+					if distance < test.limit.LimitSingleDistance.Min-EPSILON_Distance || distance >= test.limit.LimitSingleDistance.Max-EPSILON_Distance {
 						t.Log("fail", distance)
+						t.Fail()
+					}
+					if strict && distance < test.limit.RandDistance.Min-EPSILON_Distance || distance >= test.limit.RandDistance.Max-EPSILON_Distance {
+						t.Log("doesn't qualified RandDistance limitation", distance)
 						t.Fail()
 					}
 					remain -= distance
