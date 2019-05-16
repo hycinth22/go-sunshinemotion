@@ -14,7 +14,7 @@ var beijingZone = time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 
 func init() {
 	session = CreateSession()
-	info, loginErr = session.Login(60, "091840523", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456a"))))
+	info, loginErr = session.Login(60, "091840429", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
 }
 
 func TestGetSchoolList(t *testing.T) {
@@ -43,14 +43,14 @@ func TestGetSportResult(t *testing.T) {
 }
 
 func TestSession_UploadSingleData(t *testing.T) {
-	return // Only Test If must required
+	// return // Only Test If must required
 	r := Record{
-		UserID:    9593,
-		SchoolID:  60,
-		Distance:  0.000,
-		BeginTime: time.Date(2019, 4, 27, 21, 39, 43, 0, time.Local),
-		EndTime:   time.Date(2019, 4, 27, 21, 39, 47, 0, time.Local),
-		IsValid:   false,
+		UserID:    session.User.UserID,
+		SchoolID:  session.User.SchoolID,
+		Distance:  4.871,
+		BeginTime: time.Date(2019, 5, 16, 20, 30, 33, 795044373, beijingZone),
+		EndTime:   time.Date(2019, 5, 16, 21, 15, 26, 863371645, beijingZone),
+		IsValid:   true,
 	}
 	err := session.UploadRecord(r)
 	if err != nil {

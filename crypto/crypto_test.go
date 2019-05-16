@@ -45,6 +45,7 @@ func TestCalcXTcode(t *testing.T) {
 		{"normal case 5", 11732, "2019-03-20 14:38:02", "2.333", "A10AB35A7AE2D2E1564587324406BCD5"},
 		{"normal case 6", 9593, "2019-04-27 21:31:58", "0.000", "E295C45BFAC2B469E659EEFFD04EBDED"},
 		{"normal case 7", 7424, "2019-04-29 18:52:04", "4.900", "6340445C1F7DEEC80A1D4522780FC895"},
+		{"normal case 8", 6418, "2019-05-16 07:53:33", "4.871", "6340445C1F7DEEC80A1D4522780FC895"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
