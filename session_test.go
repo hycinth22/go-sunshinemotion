@@ -43,7 +43,7 @@ func TestGetSportResult(t *testing.T) {
 }
 
 func TestSession_UploadSingleData(t *testing.T) {
-	// return // Only Test If must required
+	return // Only Test If must required
 	r := Record{
 		UserID:    session.User.UserID,
 		SchoolID:  session.User.SchoolID,
