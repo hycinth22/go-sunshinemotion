@@ -193,7 +193,7 @@ func (s *Session) UploadRecord(record Record) (e error) {
 		return httpError{"HTTP Create Request Failed.", err}
 	}
 	s.setHTTPHeader(req)
-	fmt.Println("Upload Headers: ", DumpStruct(req.Header))
+	fmt.Println("Upload Request Headers: ", DumpStruct(req.Header))
 	beginT := time.Now()
 	resp, err := http.DefaultClient.Do(req)
 	endT := time.Now()
@@ -204,6 +204,7 @@ func (s *Session) UploadRecord(record Record) (e error) {
 	if err != nil {
 		return httpError{"HTTP Send Request Failed! %s", err}
 	}
+	fmt.Println("Upload Response Headers: ", DumpStruct(resp.Header))
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("HTTP Status: %s", resp.Status)
 	}
