@@ -78,3 +78,13 @@ func NormalizeDistance(distance float64) (normalizeDistance float64) {
 	_, _ = fmt.Sscanf(fmt.Sprintf("%.3f", distance), "%f", &normalizeDistance)
 	return
 }
+
+// %v the value in a default format, adds field names
+func DumpStructValue(data interface{}) string {
+	return fmt.Sprintf("%+v", data)
+}
+
+// %#v	a Go-syntax representation of the value
+func DumpStruct(data interface{}) string {
+	return fmt.Sprintf("%#v", data)
+}

@@ -193,7 +193,11 @@ func (s *Session) UploadRecord(record Record) (e error) {
 		return httpError{"HTTP Create Request Failed.", err}
 	}
 	s.setHTTPHeader(req)
+	fmt.Println("Upload Headers: ", DumpStruct(req.Header))
+	beginT := time.Now()
 	resp, err := http.DefaultClient.Do(req)
+	endT := time.Now()
+	fmt.Println("Upload Time", beginT, endT, endT.Sub(beginT))
 	if resp != nil && resp.Body != nil {
 		defer resp.Body.Close()
 	}
