@@ -2,14 +2,14 @@ package ssmt
 
 var (
 	serviceErrorTable    = make(map[int64]IServiceError)
-	ErrForbidden         = ServiceError{-1, "禁止进行此操作", ""} // 无权进行此操作，可能不在跑步时间或帐号被封禁
-	ErrInvalidIdentity   = ServiceError{0, "身份信息错误", ""}
+	ErrForbidden         = ServiceError{-1, "禁止进行此操作", ""} // 无权进行此操作，如：不在跑步时间、帐号被封禁
+	ErrInvalidIdentity   = ServiceError{0, "身份信息错误", ""}   // 当前身份信息不足以完成该操作。如：提供的用户名或者密码错误、体能测试未开放
 	ErrInvalidToken      = ServiceError{2, "令牌信息无效", ""}
 	ErrDisqualifiedSpeed = ServiceError{5, "速度不合格", ""}
 	ErrIllegalData       = ServiceError{100001, "非法数据", ""}
 
 	ErrTokenExpired            = ServiceError{2, "无效的登录信息", ""}            // DEPRECATED
-	ErrWrongUsernameOrPassword = ServiceError{0, "用户名或者密码错误，或体能测试未开放", ""} // DEPRECATED 用户名或者密码错误，或体能测试未开放
+	ErrWrongUsernameOrPassword = ServiceError{0, "用户名或者密码错误，或体能测试未开放", ""} // DEPRECATED: 用户名或者密码错误，或体能测试未开放
 )
 
 func init() {
