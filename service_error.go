@@ -13,12 +13,30 @@ var (
 )
 
 func init() {
-	serviceErrorTable[-1] = ErrForbidden
-	serviceErrorTable[0] = ErrWrongUsernameOrPassword
 	serviceErrorTable[1] = nil
-	serviceErrorTable[2] = ErrInvalidToken
-	serviceErrorTable[5] = ErrDisqualifiedSpeed
-	serviceErrorTable[100001] = ErrIllegalData
+	registerServiceErrors(ErrForbidden, ErrWrongUsernameOrPassword, ErrInvalidToken, ErrDisqualifiedSpeed, ErrIllegalData)
+}
+
+func registerServiceErrors(errors ...IServiceError) {
+	var ok bool
+	for _, err := range errors {
+		ok = registerServiceError(err, false)
+		if !ok {
+			panic("Register IServiceError: Dulicated Status Code")
+		}
+	}
+}
+
+func registerServiceError(err IServiceError, overwrite bool) bool {
+	code := err.GetCode()
+	if !overwrite {
+		_, exist := serviceErrorTable[code]
+		if exist {
+			return false
+		}
+	}
+	serviceErrorTable[code] = err
+	return true
 }
 
 func translateServiceError(statusCode int64, statusMessage string) IServiceError {
