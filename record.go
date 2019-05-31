@@ -189,10 +189,10 @@ func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistanc
 		println("p1", singleDistance)
 	} else {
 		// Downgrade
-		limit := limitParams.LimitSingleDistance // Use RandDistance Params
+		limit := limitParams.LimitSingleDistance // Use LimitSingleDistance Params
 		if remain >= limit.Min-EPSILON_Distance {
 			low := math.Max(remain-tinyPart, limit.Min)
-			high := math.Min(remain+tinyPart, limit.Max-0.5*MinDistanceAccurency)
+			high := math.Min(remain, limit.Max-0.5*MinDistanceAccurency)
 			singleDistance = randRangeFloat(low, high)
 			println("p2", singleDistance)
 		} else {
