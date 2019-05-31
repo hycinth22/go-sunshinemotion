@@ -427,13 +427,13 @@ func (s *Session) GetRandRoute() (r []RandRoute, e error) {
 		Status       int64  `json:"Status"`
 		ErrorMessage string `json:"ErrorMessage"`
 
-		// Warning: misleading name, only use if you really understand it
-		// these fileds is confusing in target system
-		Qualified float64 `json:"Qualified"`
-		MinSpeed  float64 `json:"MinSpeed"`
-		DayLimit  float64 `json:"DayLimit"`
-		MaxSpeed  float64 `json:"MaxSpeed"`
-		WeekLimit float64 `json:"WeekLimit"`
+		// Warning: misleading fileds names, only use if you really understand it.
+		// these fileds is confusing in target system, the following notes give some explanations.
+		Qualified float64 `json:"Qualified"` // Confirmed: Qualified Distance
+		MinSpeed  float64 `json:"MinSpeed"`  // Unconfirmed
+		DayLimit  float64 `json:"DayLimit"`  // Inconsistent Name&Usage: Minimal Distance One Record
+		MaxSpeed  float64 `json:"MaxSpeed"`  // Inconsistent Name&Usage: Maximal Distance One Day
+		WeekLimit float64 `json:"WeekLimit"` // Unconfirmed
 
 		RouteArray []RandRoute `json:"RouteArray"`
 	}
@@ -442,7 +442,7 @@ func (s *Session) GetRandRoute() (r []RandRoute, e error) {
 		e = fmt.Errorf("reslove Failed. %s", err.Error())
 		return
 	}
-
+	println(DumpStructValue(httpResult))
 	err = translateServiceError(httpResult.Status, httpResult.ErrorMessage)
 	if err != nil {
 		e = err
