@@ -5,9 +5,6 @@ type LimitParams struct {
 	RandDistance Float64Range
 	// 限制区间（生成单条记录的的硬性限制）
 	LimitSingleDistance Float64Range
-	// DEPRECATED: Use LimitTotalMaxDistance instead
-	// 限制区间（所有记录总和的限制区间）
-	LimitTotalDistance Float64Range
 	// 所有记录总和的最大值
 	LimitTotalMaxDistance float64
 	// 每公里的分钟系数区间
