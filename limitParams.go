@@ -24,7 +24,6 @@ func GetDefaultLimitParams(sex string) LimitParams {
 		return LimitParams{
 			RandDistance:          Float64Range{2.992, 3.0},
 			LimitSingleDistance:   Float64Range{1.0, 3.0},
-			LimitTotalDistance:    Float64Range{1.0, 3.0},
 			LimitTotalMaxDistance: 3.0,
 			MinutePerKM:           Float64Range{7.0, 13.0},
 		}
@@ -32,7 +31,6 @@ func GetDefaultLimitParams(sex string) LimitParams {
 		return LimitParams{
 			RandDistance:          Float64Range{4.992, 5.0},
 			LimitSingleDistance:   Float64Range{2.0, 5.0},
-			LimitTotalDistance:    Float64Range{2.0, 5.0},
 			LimitTotalMaxDistance: 5.0,
 			MinutePerKM:           Float64Range{8.0, 14.0},
 		}
