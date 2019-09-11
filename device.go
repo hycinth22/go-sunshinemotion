@@ -10,9 +10,9 @@ type Device struct {
 }
 
 const (
-	defaultDevice    = "Android,25,7.1"
+	defaultDevice    = "Android,26,8.0 release-keys"
 	defaultScreen    = "1080x1920"
-	DefaultUserAgent = "Dalvik/2.1.0 (Linux; U; Android 7.0)"
+	DefaultUserAgent = "Dalvik/2.2.0 (Linux; U; Android 8.0)"
 )
 
 func GenerateDevice() *Device {
