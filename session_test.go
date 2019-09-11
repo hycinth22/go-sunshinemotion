@@ -14,7 +14,7 @@ var beijingZone = time.FixedZone("Beijing Time", int((8 * time.Hour).Seconds()))
 
 func init() {
 	session = CreateSession()
-	info, loginErr = session.Login(60, "091840429", "123", fmt.Sprintf("%x", md5.Sum([]byte("123456"))))
+	info, loginErr = session.Login(60, "061841216", "17390940000", fmt.Sprintf("%x", md5.Sum([]byte("LJW66666"))))
 }
 
 func TestGetSchoolList(t *testing.T) {
@@ -60,11 +60,15 @@ func TestSession_UploadSingleData(t *testing.T) {
 }
 func TestSession_UploadData(t *testing.T) {
 	return // Only Test If must required
+	if !t.Run("GetRandRoute", TestGetRandRoute) {
+		t.Skip()
+		return
+	}
 	endTime := time.Now()
 	records := SmartCreateRecordsBefore(session.User.SchoolID, session.User.UserID, GetDefaultLimitParams(info.Sex), 3, endTime)
 	for _, r := range records {
 		t.Logf("%+v", r)
-		// var err error = nil
+		//var err error = nil
 		err := session.UploadRecord(r)
 		if err != nil {
 			t.Error(err)
