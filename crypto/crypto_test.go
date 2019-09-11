@@ -12,10 +12,8 @@ func TestCalcDBXTcode(t *testing.T) {
 		distance  string
 		xtcode    string
 	}{
-		{"empty case", 0, "", "", "9D762700D9BCEF2D04BCB2D3DEF6B35D"},
-		{"normal case 1", 11732, "2019-03-19 14:38:02", "0.000", "2012AAA887F6958E344114DFB5E6A3EB"},
-		{"normal case 2", 11732, "2019-03-19 14:38:02", "2.111", "E25A9F8F6A83DDA8F069E3DFAE626CB7"},
-		{"normal case 3", 11732, "2019-03-20 14:38:02", "2.333", "5DD51B3D2BA0C0E5E0317ADF8CA4FB96"},
+		{"empty case", 0, "", "", "68AA3D4617390EDF63AFE905743789DF"},
+		{"normal case 1", 8422, "2019-09-11 10:49:14", "2.992", "0C35DCDD29F069BB98D8D20A0C79BA99"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -37,15 +35,15 @@ func TestCalcXTcode(t *testing.T) {
 		distance  string
 		xtcode    string
 	}{
-		{"empty case", 0, "", "", "41B79A796B6B16A7701F70684D0A3A6E"},
-		{"normal case 1", 1234, "2006-01-02 15:04:05", "3.410", "ED9335F08B363EF8C9954302EE84547F"},
-		{"normal case 2", 5678, "2017-02-03 16:05:06", "4.520", "38A2FDC3A89C6200CE41BF0639F145ED"},
-		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.630", "1630BC477C9BB0150773434F9A07C0DD"},
-		{"normal case 4", 11732, "2019-03-19 14:38:02", "2.111", "E52032D81713BAC79DE21C2BF0B68C2F"},
-		{"normal case 5", 11732, "2019-03-20 14:38:02", "2.333", "A10AB35A7AE2D2E1564587324406BCD5"},
-		{"normal case 6", 9593, "2019-04-27 21:31:58", "0.000", "E295C45BFAC2B469E659EEFFD04EBDED"},
-		{"normal case 7", 7424, "2019-04-29 18:52:04", "4.900", "6340445C1F7DEEC80A1D4522780FC895"},
-		{"normal case 8", 6418, "2019-05-16 07:53:33", "4.871", "50B9AF0FF5F44368AED8A47CA12F1A62"},
+		{"empty case", 0, "", "", "7E9F5BF6DFB2153ACA648F768CA85EC2"},
+		{"normal case 1", 1234, "2006-01-02 15:04:05", "3.410", "30F96005837052B043B2C28A61E05A6C"},
+		{"normal case 2", 5678, "2017-02-03 16:05:06", "4.520", "51BC18ADF27E47D9DAD4B707FB91111C"},
+		{"normal case 3", 9012, "2028-03-04 17:06:07", "5.630", "CD6402A5D6248237BECE0F9AF1936250"},
+		{"normal case 4", 11732, "2019-03-19 14:38:02", "2.111", "3901495440D9F0FE2BCEC94325FF556E"},
+		{"normal case 5", 11732, "2019-03-20 14:38:02", "2.333", "A4A2EDAF03911EB500A6A9D277BC5FEC"},
+		{"normal case 6", 9593, "2019-04-27 21:31:58", "0.000", "9C66777808294D2DBC3B6EE625BA6EDB"},
+		{"normal case 7", 7424, "2019-04-29 18:52:04", "4.900", "AB19DCBE2C7B92D65580DEFDAA817376"},
+		{"normal case 8", 6418, "2019-05-16 07:53:33", "4.871", "222B3990F8A96653ED2A33DCE96A6FC7"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -67,27 +65,27 @@ func TestCalcLi(t *testing.T) {
 		p1   string
 		li   string
 	}{
-		{"empty string case", "", "", "C383EF76A3AE3C080066F1D11DA9104B"},
+		{"empty string case", "", "", "E629933040B660F4814DF4A144E74A24"},
 		{"normal case",
 			"",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit",
-			"39B3827C087FBB73A18074493038FCB3"},
+			"BB92F5237F15EEAF6D8D0033BB35C88E"},
 		{"normal case",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 			"",
-			"39B3827C087FBB73A18074493038FCB3"},
+			"BB92F5237F15EEAF6D8D0033BB35C88E"},
 		{"normal case",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit",
 			"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-			"4B9E5FAC650CA0F00C0AAF1B2E477C61"},
+			"0B68F974EE595C3EA522B3B9E7C5DC52"},
 		{"normal case",
 			"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit",
-			"A2BAA4DCD5791013D1A92CA371479D52"},
+			"819E16D28A76AEBE5BB7BB56AAAAB903"},
 		{"large string case ",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 			"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-			"0707B9E88FB988E68F3C4656F99E52F4"},
+			"E2CC4D759AA44076B85A925C2FE638C9"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

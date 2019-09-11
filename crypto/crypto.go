@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	AESKey   = []byte("loaes2019*(#$cry")
-	HashSalt = "androidmu3232chang*^12"
+	AESKey     = []byte("loaes2119*(#$mu2")
+	HashSalt   = "androidmu3232chang*^12"
 	DBHashSalt = "locat2018*(#$crymukai"
-	aesBlock cipher.Block
+	aesBlock   cipher.Block
 )
 
 func init() {

@@ -45,8 +45,8 @@ const (
 	getTestRuleURL    = serverAPIRoot + "/sunShine_Sports/getTestRule.action"
 
 	AppPackageName = "com.ccxyct.sunshinemotion"
-	AppVersion     = "2.2.10"
-	AppVersionID   = 15
+	AppVersion     = "3.1.12"
+	AppVersionID   = 18
 )
 
 func (s *Session) setRandomDevice() {
@@ -187,13 +187,13 @@ func (s *Session) UploadRecord(record Record) (e error) {
 	sportData := XTJsonSportDataFromRecord(record, bz)
 	fmt.Println("sportData:", sportData)
 	query := makeQuery(sportData)
-	fmt.Println("query:", query)
 	req, err := http.NewRequest(http.MethodPost, uploadDataURL+"?"+query, nil)
 	if err != nil {
 		return httpError{"HTTP Create Request Failed.", err}
 	}
 	s.setHTTPHeader(req)
 	fmt.Println("Upload Request Headers: ", DumpStruct(req.Header))
+	fmt.Println("Upload Request Query: ", query)
 	beginT := time.Now()
 	resp, err := http.DefaultClient.Do(req)
 	endT := time.Now()
@@ -213,6 +213,7 @@ func (s *Session) UploadRecord(record Record) (e error) {
 		ErrorMessage string
 	}
 	err = json.NewDecoder(resp.Body).Decode(&uploadResult)
+	fmt.Println("Upload Response Result: ", DumpStruct(uploadResult))
 	if err != nil {
 		return fmt.Errorf("HTTP Response reslove Failed. %s", err.Error())
 	}
