@@ -101,7 +101,7 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 	lastEndTime := afterTime
 	println("distance", distance)
 	sum := 0.0
-	for remain > 0.0+EPSILON_Distance {
+	for remain >= limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 		singleDistance := smartCreateDistance(limitParams, remain)
 		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 			break
@@ -141,8 +141,9 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 	lastBeginTime := beforeTime
 	println("distance", distance)
 	sum := 0.0
-	for remain > 0.0+EPSILON_Distance {
+	for remain >= limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 		singleDistance := smartCreateDistance(limitParams, remain)
+		println("singleDistance:", singleDistance)
 		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
 			break
 		}
@@ -157,6 +158,7 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), endTime, randomDuration))
 
 		remain -= singleDistance
+		println("remain:", remain)
 		lastBeginTime = beginTime
 		sum += singleDistance
 		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
@@ -181,6 +183,11 @@ func couldDownGrade(limitParams LimitParams, remain float64) bool {
 
 func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistance float64) {
 	const tinyPart = 0.1 // KM
+	// 参数检查
+	if singleDistance < limitParams.LimitSingleDistance.Min+EPSILON_Distance {
+		println("smartCreateDistance参数不正确", singleDistance)
+		return 0.0
+	}
 
 	limit := limitParams.RandDistance // Use RandDistance Params
 	if remain >= limit.Max-EPSILON_Distance && !couldDownGrade(limitParams, remain) {

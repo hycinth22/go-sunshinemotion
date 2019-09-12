@@ -29,7 +29,7 @@ func TestSmartCreateDistance(t *testing.T) {
 			for i := 0; i < 1000; i++ {
 				remain := test.remain
 				for remain > test.limit.LimitSingleDistance.Min {
-					println("remain", remain)
+					t.Log("remain", remain)
 					distance := smartCreateDistance(test.limit, remain)
 					t.Log("smartCreateDistance ", distance)
 					if distance > remain {
