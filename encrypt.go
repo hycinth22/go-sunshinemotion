@@ -1,7 +1,7 @@
 package ssmt
 
 import (
-	"github.com/inkedawn/go-sunshinemotion/crypto"
+	"github.com/inkedawn/go-sunshinemotion/v3/crypto"
 )
 
 func CalcXTcode(userId int64, beginTime string, distance string) string {

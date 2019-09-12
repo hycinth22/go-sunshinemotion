@@ -3,7 +3,7 @@ package crypto
 import (
 	. "crypto/cipher"
 
-	"github.com/inkedawn/go-sunshinemotion/crypto/cipherExtend"
+	"github.com/inkedawn/go-sunshinemotion/v3/crypto/cipherExtend"
 )
 
 type ecbPKCS5Decrypter struct {
