@@ -1,5 +1,7 @@
 package ssmt
 
+import "math"
+
 type LimitParams struct {
 	// 随机区间（若还有足够的欲生成的距离，生成单条记录的的随机距离区间）
 	RandDistance Float64Range
@@ -36,4 +38,11 @@ func GetDefaultLimitParams(sex string) LimitParams {
 		}
 	}
 	return LimitParams{}
+}
+
+// 区间合法、RandDistance与LimitSingleDistance是否有区间交集
+func (p LimitParams) IsValid() bool {
+	return p.RandDistance.Min <= p.RandDistance.Max && // valid range
+		p.LimitSingleDistance.Min <= p.LimitSingleDistance.Max && // valid range
+		math.Max(p.RandDistance.Min, p.LimitSingleDistance.Min) <= math.Min(p.RandDistance.Max, p.LimitSingleDistance.Max) // range overlap
 }
