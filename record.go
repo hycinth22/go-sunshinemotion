@@ -184,7 +184,7 @@ func couldDownGrade(limitParams LimitParams, remain float64) bool {
 func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistance float64) {
 	const tinyPart = 0.1 // KM
 	// 参数检查
-	if singleDistance < limitParams.LimitSingleDistance.Min+EPSILON_Distance {
+	if remain < limitParams.LimitSingleDistance.Min+EPSILON_Distance {
 		println("smartCreateDistance参数不正确", singleDistance)
 		return 0.0
 	}
