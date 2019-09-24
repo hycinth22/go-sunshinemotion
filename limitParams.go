@@ -14,8 +14,8 @@ type LimitParams struct {
 }
 
 const (
-	EPSILON_Distance     = 0.00049999
-	MinDistanceAccurency = 0.001
+	EpsilonDistance  = 0.0004999_9999_9999_9999
+	DistanceAccuracy = 0.001
 )
 
 func GetDefaultLimitParams(sex string) LimitParams {

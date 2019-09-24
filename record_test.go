@@ -57,10 +57,16 @@ func Test_smartCreateDistance(t *testing.T) {
 		LimitTotalMaxDistance: flimit.LimitTotalMaxDistance,
 		MinutePerKM:           flimit.MinutePerKM,
 	}
+	mlimitReduce := LimitParams{
+		RandDistance:          Float64Range{mlimit.LimitSingleDistance.Min, mlimit.LimitSingleDistance.Min + (mlimit.RandDistance.Max-mlimit.LimitSingleDistance.Min)*0.87},
+		LimitSingleDistance:   mlimit.LimitSingleDistance,
+		LimitTotalMaxDistance: mlimit.LimitTotalMaxDistance,
+		MinutePerKM:           mlimit.MinutePerKM,
+	}
 	tests := []struct {
 		name   string
 		args   args
-		inRand bool
+		inRand bool // strict mode, must be meet the randDistance limitation
 	}{
 		{"p1 f", args{flimit, 2 * flimit.RandDistance.Max}, true},
 		{"p1 m", args{mlimit, 2 * mlimit.RandDistance.Max}, true},
@@ -69,18 +75,19 @@ func Test_smartCreateDistance(t *testing.T) {
 		{"p2 m-3.0", args{mlimit, 3}, false},
 		{"p2 m-4.0", args{mlimit, 4}, false},
 		{"p2 m-4.5", args{mlimit, 4.5}, false},
-		{"std f", args{flimit, flimit.LimitTotalMaxDistance - MinDistanceAccurency}, false},
-		{"std m", args{mlimit, mlimit.LimitTotalMaxDistance - MinDistanceAccurency}, false},
-		{"reduce f", args{flimitReduce, flimit.LimitTotalMaxDistance - MinDistanceAccurency}, true},
+		{"std f", args{flimit, flimit.LimitTotalMaxDistance - DistanceAccuracy}, false},
+		{"std m", args{mlimit, mlimit.LimitTotalMaxDistance - DistanceAccuracy}, false},
+		{"reduce f", args{flimitReduce, flimit.LimitTotalMaxDistance - DistanceAccuracy}, true},
+		{"reduce m", args{mlimitReduce, mlimit.LimitTotalMaxDistance - DistanceAccuracy}, true},
 	}
 	validate := func(arg args, singleDistance float64, remain float64, inRand bool) error {
 		if singleDistance > remain {
 			return fmt.Errorf("singleDistance exceed remain. singleDistance = %v, remain = %v", singleDistance, remain)
 		}
-		if singleDistance < arg.limitParams.LimitSingleDistance.Min-EPSILON_Distance || singleDistance >= arg.limitParams.LimitSingleDistance.Max-EPSILON_Distance {
+		if singleDistance-arg.limitParams.LimitSingleDistance.Min < -EpsilonDistance || singleDistance-arg.limitParams.LimitSingleDistance.Max >= -EpsilonDistance {
 			return fmt.Errorf("unqualified for LimitSingleDistance limitation [%v, %v)", arg.limitParams.LimitSingleDistance.Min, arg.limitParams.LimitSingleDistance.Max)
 		}
-		if inRand && singleDistance < arg.limitParams.RandDistance.Min-EPSILON_Distance || singleDistance >= arg.limitParams.RandDistance.Max-EPSILON_Distance {
+		if inRand && singleDistance-arg.limitParams.RandDistance.Min < -EpsilonDistance || singleDistance-arg.limitParams.RandDistance.Max >= -EpsilonDistance {
 			return fmt.Errorf("unqualified for RandDistance limitation [%v, %v)", arg.limitParams.RandDistance.Min, arg.limitParams.RandDistance.Max)
 		}
 		return nil
@@ -92,10 +99,11 @@ func Test_smartCreateDistance(t *testing.T) {
 				t.Run(fmt.Sprintf("%s_%d", tt.name, i), func(t *testing.T) {
 					for remain > tt.args.limitParams.LimitSingleDistance.Min {
 						t.Log("remain", remain)
-						gotSingleDistance := smartCreateDistance(tt.args.limitParams, tt.args.remain)
+						gotSingleDistance := smartCreateDistance(tt.args.limitParams, remain)
 						t.Log("smartCreateDistance() = ", gotSingleDistance)
 						if err := validate(tt.args, gotSingleDistance, remain, tt.inRand); err != nil {
 							t.Errorf("error: %v. \nargs: %+v", err, tt.args)
+							t.FailNow()
 						}
 						remain -= gotSingleDistance
 					}

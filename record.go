@@ -101,9 +101,9 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 	lastEndTime := afterTime
 	println("distance", distance)
 	sum := 0.0
-	for remain >= limitParams.LimitSingleDistance.Min-EPSILON_Distance {
+	for remain >= limitParams.LimitSingleDistance.Min-EpsilonDistance {
 		singleDistance := smartCreateDistance(limitParams, remain)
-		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
+		if singleDistance < limitParams.LimitSingleDistance.Min-EpsilonDistance {
 			break
 		}
 		// 时间间隔随机化
@@ -119,8 +119,8 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 		remain -= singleDistance
 		lastEndTime = endTime
 		sum += singleDistance
-		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
-			if remain > 0.0+EPSILON_Distance {
+		if sum > limitParams.LimitTotalMaxDistance+EpsilonDistance {
+			if remain > 0.0+EpsilonDistance {
 				println("drop remain:", remain)
 				break
 			}
@@ -141,10 +141,10 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 	lastBeginTime := beforeTime
 	println("distance", distance)
 	sum := 0.0
-	for remain >= limitParams.LimitSingleDistance.Min-EPSILON_Distance {
+	for remain >= limitParams.LimitSingleDistance.Min-EpsilonDistance {
 		singleDistance := smartCreateDistance(limitParams, remain)
 		println("singleDistance:", singleDistance)
-		if singleDistance < limitParams.LimitSingleDistance.Min-EPSILON_Distance {
+		if singleDistance < limitParams.LimitSingleDistance.Min-EpsilonDistance {
 			break
 		}
 		// 时间间隔随机化
@@ -161,8 +161,8 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 		println("remain:", remain)
 		lastBeginTime = beginTime
 		sum += singleDistance
-		if sum > limitParams.LimitTotalMaxDistance+EPSILON_Distance {
-			if remain > 0.0+EPSILON_Distance {
+		if sum > limitParams.LimitTotalMaxDistance+EpsilonDistance {
+			if remain > 0.0+EpsilonDistance {
 				println("drop remain:", remain)
 				break
 			}
@@ -177,44 +177,56 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 	return reverse
 }
 
-func couldDownGrade(limitParams LimitParams, remain float64) bool {
-	return false
-}
-
+// 结果
+// 尽量位于[RandDistance.Min, RandDistance.Max)
+// 一定位于[LimitSingleDistance.Min, LimitSingleDistance.Max)
 func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistance float64) {
 	const tinyPart = 0.1 // KM
 	// 参数检查
-	if remain < limitParams.LimitSingleDistance.Min+EPSILON_Distance {
+	if remain-limitParams.LimitSingleDistance.Min < EpsilonDistance {
 		println("smartCreateDistance参数不正确", singleDistance)
 		return 0.0
 	}
-
-	limit := limitParams.RandDistance // Use RandDistance Params
-	if remain >= limit.Max-EPSILON_Distance && !couldDownGrade(limitParams, remain) {
+	// 兜底检测，检测结果合法性
+	defer func() {
+		if singleDistance != 0.0 {
+			if singleDistance-limitParams.LimitSingleDistance.Min < -EpsilonDistance {
+				// 丢弃不合法距离
+				println("检查算法正确性, Too little distance: ", singleDistance)
+				singleDistance = 0.0
+			}
+			if singleDistance-limitParams.LimitSingleDistance.Max >= EpsilonDistance {
+				println("检查算法正确性, Too much distance", singleDistance)
+				singleDistance = 0.0
+			}
+		}
+	}()
+	if remain-limitParams.RandDistance.Max >= EpsilonDistance {
 		// 剩余足够大，正常取随机值
-		singleDistance = randRangeFloat(limit.Min, limit.Max-0.5*MinDistanceAccurency)
-		println("p1", singleDistance)
-	} else {
-		// Downgrade
-		limit := limitParams.LimitSingleDistance // Use LimitSingleDistance Params
-		if remain >= limit.Min-EPSILON_Distance {
-			low := math.Max(remain-tinyPart, limit.Min)
-			high := math.Min(remain, limit.Max-0.5*MinDistanceAccurency)
+		// Use RandDistance Params
+		low := math.Max(limitParams.RandDistance.Min, limitParams.LimitSingleDistance.Min)
+		high := math.Min(remain, math.Min(limitParams.RandDistance.Max-0.5*DistanceAccuracy, limitParams.LimitSingleDistance.Max))
+		if low <= high {
+			println("remain", remain)
+			println("low", low)
+			println("high", high)
 			singleDistance = randRangeFloat(low, high)
-			println("p2", singleDistance)
-		} else {
-			println("drop", singleDistance)
+			println("p1", singleDistance)
+			return NormalizeDistance(singleDistance)
 		}
 	}
-	// 兜底检测，检测结果合法性
-	if singleDistance < limitParams.LimitSingleDistance.Min+EPSILON_Distance {
-		// 丢弃不合法距离
-		println("检查算法正确性, Too little distance: ", singleDistance)
-		return 0.0
-	}
-	if singleDistance >= limitParams.LimitSingleDistance.Max-EPSILON_Distance {
-		println("检查算法正确性, Too much distance", singleDistance)
-		return 0.0
+	// Downgrade
+	limit := limitParams.LimitSingleDistance // Use LimitSingleDistance Params
+	if remain-limit.Min >= EpsilonDistance {
+		low := math.Max(remain-tinyPart, limit.Min)
+		high := math.Min(remain, limit.Max-0.5*DistanceAccuracy)
+		singleDistance = randRangeFloat(low, high)
+		println("remain", remain)
+		println("low", low)
+		println("high", high)
+		println("p2", singleDistance)
+	} else {
+		println("drop", singleDistance)
 	}
 	return NormalizeDistance(singleDistance)
 }
