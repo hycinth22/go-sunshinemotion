@@ -14,7 +14,7 @@ type LimitParams struct {
 }
 
 const (
-	EpsilonDistance  = 0.0004999_9999_9999_9999
+	EpsilonDistance  = 0.0004999999999999999
 	DistanceAccuracy = 0.001
 )
 
