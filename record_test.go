@@ -89,15 +89,17 @@ func Test_smartCreateDistance(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			for i := 0; i < 1000; i++ {
 				remain := tt.args.remain
-				for remain > tt.args.limitParams.LimitSingleDistance.Min {
-					t.Log("remain", remain)
-					gotSingleDistance := smartCreateDistance(tt.args.limitParams, tt.args.remain)
-					t.Log("smartCreateDistance ", gotSingleDistance)
-					if err := validate(tt.args, gotSingleDistance, remain, tt.inRand); err != nil {
-						t.Errorf("smartCreateDistance() = %v, \nerror: %v. \nargs: %+v", gotSingleDistance, err, tt.args)
+				t.Run(fmt.Sprintf("%s_%d", tt.name, i), func(t *testing.T) {
+					for remain > tt.args.limitParams.LimitSingleDistance.Min {
+						t.Log("remain", remain)
+						gotSingleDistance := smartCreateDistance(tt.args.limitParams, tt.args.remain)
+						t.Log("smartCreateDistance() = ", gotSingleDistance)
+						if err := validate(tt.args, gotSingleDistance, remain, tt.inRand); err != nil {
+							t.Errorf("error: %v. \nargs: %+v", err, tt.args)
+						}
+						remain -= gotSingleDistance
 					}
-					remain -= gotSingleDistance
-				}
+				})
 			}
 		})
 	}
