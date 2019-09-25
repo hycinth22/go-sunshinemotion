@@ -17,6 +17,11 @@ type IntRange struct {
 	Max int
 }
 
+// in range [Min, Max)
+func (r *Float64Range) In(d, epsilon float64) bool {
+	return d-r.Min >= -epsilon && d-r.Max < +epsilon
+}
+
 func init() {
 	// TODO: 寻找更好的随机数种子方法，如/dev/random
 	rand.Seed(time.Now().UnixNano())
@@ -72,11 +77,6 @@ func RandScreen() string {
 	screens := []string{"1080x1920", "1080x2028", "1080x2030"}
 	index := randRange(0, len(screens)-1)
 	return screens[index]
-}
-
-func NormalizeDistance(distance float64) (normalizeDistance float64) {
-	_, _ = fmt.Sscanf(fmt.Sprintf("%.3f", distance), "%f", &normalizeDistance)
-	return
 }
 
 // %v the value in a default format, adds field names

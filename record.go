@@ -180,8 +180,8 @@ func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitPar
 // 结果
 // 尽量位于[RandDistance.Min, RandDistance.Max)
 // 一定位于[LimitSingleDistance.Min, LimitSingleDistance.Max)
+// 可能返回0.0，代表在LimitParams下无法从remain生成距离
 func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistance float64) {
-	const tinyPart = 0.1 // KM
 	// 参数检查
 	if remain-limitParams.LimitSingleDistance.Min < EpsilonDistance {
 		println("smartCreateDistance参数不正确", singleDistance)
@@ -201,32 +201,34 @@ func smartCreateDistance(limitParams LimitParams, remain float64) (singleDistanc
 			}
 		}
 	}()
-	if remain-limitParams.RandDistance.Max >= EpsilonDistance {
+	if remain-limitParams.RandDistance.Min >= EpsilonDistance {
 		// 剩余足够大，正常取随机值
 		// Use RandDistance Params
 		low := math.Max(limitParams.RandDistance.Min, limitParams.LimitSingleDistance.Min)
-		high := math.Min(remain, math.Min(limitParams.RandDistance.Max-0.5*DistanceAccuracy, limitParams.LimitSingleDistance.Max))
-		if low <= high {
-			println("remain", remain)
-			println("low", low)
-			println("high", high)
-			singleDistance = randRangeFloat(low, high)
-			println("p1", singleDistance)
-			return NormalizeDistance(singleDistance)
-		}
-	}
-	// Downgrade
-	limit := limitParams.LimitSingleDistance // Use LimitSingleDistance Params
-	if remain-limit.Min >= EpsilonDistance {
-		low := math.Max(remain-tinyPart, limit.Min)
-		high := math.Min(remain, limit.Max-0.5*DistanceAccuracy)
-		singleDistance = randRangeFloat(low, high)
+		high := math.Min(remain, math.Min(limitParams.RandDistance.Max, limitParams.LimitSingleDistance.Max))
 		println("remain", remain)
 		println("low", low)
 		println("high", high)
+		if low <= high {
+			singleDistance = randRangeDistance(low, high)
+			println("p1", singleDistance)
+			return NormalizeDistance(singleDistance)
+		} else {
+			println("fail to inRand, downgrade")
+		}
+	}
+	// Downgrade
+	low := limitParams.LimitSingleDistance.Min
+	high := math.Min(remain, limitParams.LimitSingleDistance.Max)
+	println("remain", remain)
+	println("low", low)
+	println("high", high)
+	if remain-limitParams.LimitSingleDistance.Min >= EpsilonDistance && low <= high {
+		singleDistance = randRangeDistance(low, high)
 		println("p2", singleDistance)
 	} else {
 		println("drop", singleDistance)
+		return 0.0
 	}
 	return NormalizeDistance(singleDistance)
 }

@@ -75,20 +75,20 @@ func Test_smartCreateDistance(t *testing.T) {
 		{"p2 m-3.0", args{mlimit, 3}, false},
 		{"p2 m-4.0", args{mlimit, 4}, false},
 		{"p2 m-4.5", args{mlimit, 4.5}, false},
-		{"std f", args{flimit, flimit.LimitTotalMaxDistance - DistanceAccuracy}, false},
-		{"std m", args{mlimit, mlimit.LimitTotalMaxDistance - DistanceAccuracy}, false},
-		{"reduce f", args{flimitReduce, flimit.LimitTotalMaxDistance - DistanceAccuracy}, true},
-		{"reduce m", args{mlimitReduce, mlimit.LimitTotalMaxDistance - DistanceAccuracy}, true},
+		{"std f", args{flimit, flimit.LimitTotalMaxDistance}, false},
+		{"std m", args{mlimit, mlimit.LimitTotalMaxDistance}, false},
+		{"reduce f", args{flimitReduce, flimit.LimitTotalMaxDistance}, true},
+		{"reduce m", args{mlimitReduce, mlimit.LimitTotalMaxDistance}, true},
 	}
 	validate := func(arg args, singleDistance float64, remain float64, inRand bool) error {
 		if singleDistance > remain {
-			return fmt.Errorf("singleDistance exceed remain. singleDistance = %v, remain = %v", singleDistance, remain)
+			return fmt.Errorf("singleDistance(%v) exceed remain. remain = %v", singleDistance, remain)
 		}
-		if singleDistance-arg.limitParams.LimitSingleDistance.Min < -EpsilonDistance || singleDistance-arg.limitParams.LimitSingleDistance.Max >= -EpsilonDistance {
-			return fmt.Errorf("unqualified for LimitSingleDistance limitation [%v, %v)", arg.limitParams.LimitSingleDistance.Min, arg.limitParams.LimitSingleDistance.Max)
+		if !arg.limitParams.LimitSingleDistance.In(singleDistance, EpsilonDistance) {
+			return fmt.Errorf("singleDistance(%v) unqualified for LimitSingleDistance limitation [%v, %v)", singleDistance, arg.limitParams.LimitSingleDistance.Min, arg.limitParams.LimitSingleDistance.Max)
 		}
-		if inRand && singleDistance-arg.limitParams.RandDistance.Min < -EpsilonDistance || singleDistance-arg.limitParams.RandDistance.Max >= -EpsilonDistance {
-			return fmt.Errorf("unqualified for RandDistance limitation [%v, %v)", arg.limitParams.RandDistance.Min, arg.limitParams.RandDistance.Max)
+		if inRand && !arg.limitParams.RandDistance.In(singleDistance, EpsilonDistance) {
+			return fmt.Errorf("singleDistance(%v) unqualified for RandDistance limitation [%v, %v)", singleDistance, arg.limitParams.RandDistance.Min, arg.limitParams.RandDistance.Max)
 		}
 		return nil
 	}
