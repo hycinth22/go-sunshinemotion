@@ -28,7 +28,7 @@ func randRangeDistance(min, max float64) float64 {
 }
 
 func NormalizeDistance(distance float64) (normalizeDistance float64) {
-	return math.Trunc(distance*widthFactor) / widthFactor
+	return math.Round(distance*widthFactor) / widthFactor
 }
 
 // 结果
