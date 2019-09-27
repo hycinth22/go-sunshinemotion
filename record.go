@@ -94,29 +94,59 @@ func (r XTJsonSportTestData) GetStrpa() string {
 	return EncodeString(r.ToJSON())
 }
 
-func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitParams, distance float64, afterTime time.Time) []Record {
-	records := make([]Record, 0, int(distance/3))
-	remain := distance
-	lastEndTime := afterTime
-	println("distance", distance)
+func generateRandomTimeDuration(mpkmLimit Float64Range, distance float64) time.Duration {
+	var mpkm float64 // MinutePerKM
+	if mpkmLimit.Min != mpkmLimit.Max {
+		mpkm = randRangeFloat(mpkmLimit.Min+1, mpkmLimit.Max)
+	} else {
+		mpkm = mpkmLimit.Min
+	}
+	println("minutePerKM:", mpkm)
+	minute := distance * mpkm
+	println("minute", minute)
+	return time.Duration(minute*time.Minute.Seconds()) * time.Second
+}
+
+func nextTimeRangeASC(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time) {
+	runDuration := generateRandomTimeDuration(mpkmLimit, distance)
+	println("runDuration:", runDuration.String())
+
+	idleDuration := time.Duration(randRange(1, 30))*time.Minute + time.Duration(randRange(1, 60))*time.Second
+	beginTime = lastEndTime.Add(idleDuration)
+	endTime = beginTime.Add(runDuration).Round(time.Second)
+	return
+}
+
+func nextTimeRangeDESC(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time) {
+	runDuration := generateRandomTimeDuration(mpkmLimit, distance)
+	println("runDuration:", runDuration.String())
+
+	idleDuration := time.Duration(randRange(1, 30))*time.Minute + time.Duration(randRange(1, 60))*time.Second
+	endTime = lastBeginTime.Add(-idleDuration)
+	beginTime = endTime.Add(-runDuration)
+	return
+}
+
+func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, remain float64, timePoint time.Time,
+	timeRangeGenerator func(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time)) (records []Record) {
+	println("remain", remain)
+	records = make([]Record, 0, int(remain/3))
+
+	var (
+		beginTime = timePoint
+		endTime   = timePoint
+	)
 	sum := 0.0
 	for remain >= limitParams.LimitSingleDistance.Min-EpsilonDistance {
 		singleDistance := smartCreateDistance(limitParams, remain)
 		if singleDistance < limitParams.LimitSingleDistance.Min-EpsilonDistance {
 			break
 		}
-		// 时间间隔随机化
-		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max)
-		randomDuration := time.Duration(distance * minutePerKM * float64(time.Minute))
-		println("randomDuration:", randomDuration.String())
+		beginTime, endTime = timeRangeGenerator(limitParams.MinutePerKM, singleDistance, beginTime, endTime)
 
-		beginTime := lastEndTime.Add(time.Duration(randRange(1, 30))*time.Minute + time.Duration(randRange(1, 60))*time.Second)
-		endTime := beginTime.Add(randomDuration)
-
-		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), endTime, randomDuration))
+		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), beginTime, endTime))
 
 		remain -= singleDistance
-		lastEndTime = endTime
 		sum += singleDistance
 		if sum > limitParams.LimitTotalMaxDistance+EpsilonDistance {
 			if remain > 0.0+EpsilonDistance {
@@ -134,58 +164,24 @@ func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitPara
 	return reverse
 }
 
-func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitParams, distance float64, beforeTime time.Time) []Record {
-	records := make([]Record, 0, int(distance/3))
-	remain := distance
-	lastBeginTime := beforeTime
-	println("distance", distance)
-	sum := 0.0
-	for remain >= limitParams.LimitSingleDistance.Min-EpsilonDistance {
-		singleDistance := smartCreateDistance(limitParams, remain)
-		println("singleDistance:", singleDistance)
-		if singleDistance < limitParams.LimitSingleDistance.Min-EpsilonDistance {
-			break
-		}
-		// 时间间隔随机化
-		minutePerKM := randRangeFloat(limitParams.MinutePerKM.Min, limitParams.MinutePerKM.Max)
-		randomDuration := time.Duration(distance * minutePerKM * float64(time.Minute))
-		println("randomDuration:", randomDuration.String())
+func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitParams, remain float64, afterTime time.Time) (records []Record) {
+	return smartCreateRecords(schoolID, userID, limitParams, remain, afterTime, nextTimeRangeASC)
+}
 
-		endTime := lastBeginTime.Add(-time.Duration(randRange(1, 30))*time.Minute - time.Duration(randRange(1, 60))*time.Second)
-		beginTime := endTime.Add(-randomDuration)
-
-		records = append(records, createRecord(userID, schoolID, NormalizeDistance(singleDistance), endTime, randomDuration))
-
-		remain -= singleDistance
-		println("remain:", remain)
-		lastBeginTime = beginTime
-		sum += singleDistance
-		if sum > limitParams.LimitTotalMaxDistance+EpsilonDistance {
-			if remain > 0.0+EpsilonDistance {
-				println("drop remain:", remain)
-				break
-			}
-			break
-		}
-	}
-	nRecord := len(records)
-	reverse := make([]Record, nRecord)
-	for i := 0; i < nRecord; i++ {
-		reverse[i] = records[nRecord-i-1]
-	}
-	return reverse
+func SmartCreateRecordsBefore(schoolID int64, userID int64, limitParams LimitParams, remain float64, beforeTime time.Time) []Record {
+	return smartCreateRecords(schoolID, userID, limitParams, remain, beforeTime, nextTimeRangeDESC)
 }
 
 func CreateRecord(userID int64, schoolID int64, distance float64, endTime time.Time, duration time.Duration) Record {
-	return createRecord(userID, schoolID, NormalizeDistance(distance), endTime, duration)
+	return createRecord(userID, schoolID, NormalizeDistance(distance), endTime.Add(-duration), endTime)
 }
 
-func createRecord(userID int64, schoolID int64, distance float64, endTime time.Time, duration time.Duration) Record {
+func createRecord(userID int64, schoolID int64, distance float64, beginTime, endTime time.Time) Record {
 	r := Record{
 		UserID:    userID,
 		SchoolID:  schoolID,
 		Distance:  distance,
-		BeginTime: endTime.Add(-duration),
+		BeginTime: beginTime,
 		EndTime:   endTime,
 		IsValid:   true,
 	}
