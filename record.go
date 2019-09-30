@@ -2,6 +2,7 @@ package ssmt
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 )
 
@@ -12,6 +13,19 @@ type Record struct {
 	BeginTime time.Time
 	EndTime   time.Time
 	IsValid   bool
+}
+
+// Implements the interface sort.Interface
+type RecordSetForSort []Record
+
+func (r *RecordSetForSort) Len() int {
+	return len(*r)
+}
+func (r *RecordSetForSort) Less(i int, j int) bool {
+	return (*r)[i].BeginTime.Before((*r)[j].BeginTime)
+}
+func (r *RecordSetForSort) Swap(i int, j int) {
+	(*r)[i], (*r)[j] = (*r)[j], (*r)[i]
 }
 
 type IXTJsonSportData interface {
@@ -130,7 +144,8 @@ func nextTimeRangeDESC(mpkmLimit Float64Range, distance float64, lastBeginTime t
 func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, remain float64, timePoint time.Time,
 	timeRangeGenerator func(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time)) (records []Record) {
 	println("remain", remain)
-	records = make([]Record, 0, int(remain/3))
+
+	var tmp RecordSetForSort = make([]Record, 0, int(remain/3))
 
 	var (
 		beginTime = timePoint
@@ -156,12 +171,8 @@ func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, r
 			break
 		}
 	}
-	nRecord := len(records)
-	reverse := make([]Record, nRecord)
-	for i := 0; i < nRecord; i++ {
-		reverse[i] = records[nRecord-i-1]
-	}
-	return reverse
+	sort.Sort(&tmp)
+	return tmp
 }
 
 func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitParams, remain float64, afterTime time.Time) (records []Record) {
