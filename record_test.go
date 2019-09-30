@@ -33,6 +33,9 @@ func TestSmartCreateRecordsBefore(t *testing.T) {
 					limit := GetDefaultLimitParams(test.sex)
 					timePoint := time.Now()
 					records := SmartCreateRecordsBefore(0, 0, limit, limit.LimitTotalMaxDistance-0.1, timePoint)
+					if len(records) == 0 {
+						t.Fail()
+					}
 					for _, r := range records {
 						checkRecordSpeed(t, r, limit.MinutePerKM)
 						if r.BeginTime.After(timePoint) || r.EndTime.After(timePoint) {
@@ -59,6 +62,9 @@ func TestSmartCreateRecordsAfter(t *testing.T) {
 			timePoint := time.Now()
 			limit := GetDefaultLimitParams(test.sex)
 			records := SmartCreateRecordsAfter(0, 0, limit, limit.LimitTotalMaxDistance-0.1, timePoint)
+			if len(records) == 0 {
+				t.Fail()
+			}
 			for _, r := range records {
 				checkRecordSpeed(t, r, limit.MinutePerKM)
 				if r.BeginTime.Before(timePoint) || r.EndTime.Before(timePoint) {

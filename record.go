@@ -142,10 +142,10 @@ func nextTimeRangeDESC(mpkmLimit Float64Range, distance float64, lastBeginTime t
 }
 
 func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, remain float64, timePoint time.Time,
-	timeRangeGenerator func(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time)) (records []Record) {
+	timeRangeGenerator func(mpkmLimit Float64Range, distance float64, lastBeginTime time.Time, lastEndTime time.Time) (beginTime time.Time, endTime time.Time)) []Record {
 	println("remain", remain)
 
-	var tmp RecordSetForSort = make([]Record, 0, int(remain/3))
+	var records RecordSetForSort = make([]Record, 0, int(remain/3))
 
 	var (
 		beginTime = timePoint
@@ -171,8 +171,8 @@ func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, r
 			break
 		}
 	}
-	sort.Sort(&tmp)
-	return tmp
+	sort.Sort(&records)
+	return records
 }
 
 func SmartCreateRecordsAfter(schoolID int64, userID int64, limitParams LimitParams, remain float64, afterTime time.Time) (records []Record) {
