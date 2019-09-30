@@ -1,6 +1,9 @@
 package ssmt
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type httpError struct {
 	msg     string
@@ -21,7 +24,7 @@ type IServiceError interface {
 	GetCode() int64
 	GetMsg() string
 	SetMsg(string)
-	Equal(IServiceError) bool
+	Equal(error) bool
 }
 
 type ServiceError struct {
@@ -42,6 +45,7 @@ func (e ServiceError) GetMsg() string {
 func (e ServiceError) SetMsg(m string) {
 	e.msg = m
 }
-func (e ServiceError) Equal(r IServiceError) bool {
-	return e.code == r.GetCode()
+func (e ServiceError) Equal(err error) bool {
+	var r IServiceError
+	return errors.As(err, &r) && e.code == r.GetCode()
 }

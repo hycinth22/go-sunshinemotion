@@ -22,7 +22,7 @@ func registerServiceErrors(errors ...IServiceError) {
 	for _, err := range errors {
 		ok = registerServiceError(err, false)
 		if !ok {
-			panic("Register IServiceError: Dulicated Status Code")
+			panic("Register IServiceError: Duplicated Status Code")
 		}
 	}
 }
