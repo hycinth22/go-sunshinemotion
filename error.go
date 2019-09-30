@@ -33,19 +33,19 @@ type ServiceError struct {
 	msg  string
 }
 
-func (e ServiceError) Error() string {
+func (e *ServiceError) Error() string {
 	return fmt.Sprintf("response status %d(%s) , message: %s", e.code, e.what, e.msg)
 }
-func (e ServiceError) GetCode() int64 {
+func (e *ServiceError) GetCode() int64 {
 	return e.code
 }
-func (e ServiceError) GetMsg() string {
+func (e *ServiceError) GetMsg() string {
 	return e.msg
 }
-func (e ServiceError) SetMsg(m string) {
+func (e *ServiceError) SetMsg(m string) {
 	e.msg = m
 }
-func (e ServiceError) Equal(err error) bool {
+func (e *ServiceError) Equal(err error) bool {
 	var r IServiceError
 	return errors.As(err, &r) && e.code == r.GetCode()
 }
