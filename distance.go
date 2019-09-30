@@ -20,9 +20,9 @@ var (
 // 该函数对此情况做了修正。
 func randRangeDistance(min, max float64) float64 {
 	// 对max修正的同时，也对min做了修正，这是为了尽力维持原概率分布。
-	if max-max*widthFactor >= EpsilonDistance {
-		min = math.Trunc(min*widthFactor)/widthFactor - EpsilonDistance
-		max -= EpsilonDistance
+	if math.Trunc(max*widthFactor)/widthFactor >= EpsilonDistance {
+		//min = math.Trunc(min*widthFactor)/widthFactor - EpsilonDistance
+		//max -= EpsilonDistance
 	}
 	return randRangeFloat(min, max)
 }
