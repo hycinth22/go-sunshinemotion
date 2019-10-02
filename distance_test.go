@@ -114,8 +114,9 @@ func Test_randRangeDistance(t *testing.T) {
 				t.Run(fmt.Sprintf("%s_%d", tt.name, i), func(t *testing.T) {
 					t.Parallel()
 					got := randRangeDistance(tt.args.min, tt.args.max)
-					if got < tt.args.min || got >= tt.args.max {
-						t.Errorf("randRangeDistance() = %v, want [%.3f, %.3f)", got, tt.args.min, tt.args.max)
+					roundGot, _ := fromServiceStdDistance(toServiceStdDistance(got))
+					if roundGot < tt.args.min || roundGot >= tt.args.max {
+						t.Errorf("randRangeDistance() = %v, roundGot = %v, want [%.3f, %.3f)", got, roundGot, tt.args.min, tt.args.max)
 						t.Fail()
 					}
 				})

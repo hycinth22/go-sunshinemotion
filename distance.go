@@ -17,14 +17,14 @@ var (
 // 我们限制区间[min, max) 不能到达右区间。
 // 当最后结果四舍五入，可能造成到达右区间。
 //
-// 该函数对此情况做了修正。
+// 该函数对此情况做了修正，保证返回值在经过四舍五入之后也仍然在区间之内。
 func randRangeDistance(min, max float64) float64 {
 	// 对max修正的同时，也对min做了修正，这是为了尽力维持原概率分布。
 	if math.Trunc(max*widthFactor)/widthFactor >= EpsilonDistance {
-		//min = math.Trunc(min*widthFactor)/widthFactor - EpsilonDistance
-		//max -= EpsilonDistance
+		min = math.Trunc(min*widthFactor)/widthFactor - EpsilonDistance
+		max -= EpsilonDistance
 	}
-	return randRangeFloat(min, max)
+	return NormalizeDistance(randRangeFloat(min, max))
 }
 
 func NormalizeDistance(distance float64) (normalizeDistance float64) {
