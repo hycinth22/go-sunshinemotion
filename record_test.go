@@ -32,7 +32,7 @@ func TestSmartCreateRecordsBefore(t *testing.T) {
 					t.Parallel()
 					limit := GetDefaultLimitParams(test.sex)
 					timePoint := time.Now()
-					records := SmartCreateRecordsBefore(0, 0, limit, limit.LimitTotalMaxDistance-0.1, timePoint)
+					records := SmartCreateRecordsBefore(0, 0, limit, limit.LimitTotalMaxDistance, timePoint)
 					if len(records) == 0 {
 						t.Fail()
 					}
@@ -61,7 +61,7 @@ func TestSmartCreateRecordsAfter(t *testing.T) {
 			t.Logf(test.sex)
 			timePoint := time.Now()
 			limit := GetDefaultLimitParams(test.sex)
-			records := SmartCreateRecordsAfter(0, 0, limit, limit.LimitTotalMaxDistance-0.1, timePoint)
+			records := SmartCreateRecordsAfter(0, 0, limit, limit.LimitTotalMaxDistance, timePoint)
 			if len(records) == 0 {
 				t.Fail()
 			}
