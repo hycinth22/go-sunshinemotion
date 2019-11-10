@@ -27,6 +27,13 @@ func randRangeDistance(min, max float64) float64 {
 	return NormalizeDistance(randRangeFloat(min, max))
 }
 
+// 返回x的浮动区间[min, max)，保证浮动区间内四舍五入后仍然在该精度精度上等于x
+func DistanceRangeAround(x float64, width int) (min, max float64) {
+	wf := math.Pow10(width)
+	t := math.Trunc(x * wf)
+	return (t - 0.5) / wf, (t + 0.5) / wf
+}
+
 func NormalizeDistance(distance float64) (normalizeDistance float64) {
 	return math.Round(distance*widthFactor) / widthFactor
 }

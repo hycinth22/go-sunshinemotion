@@ -124,3 +124,37 @@ func Test_randRangeDistance(t *testing.T) {
 		})
 	}
 }
+
+func TestDistanceRangeAround(t *testing.T) {
+	type args struct {
+		x     float64
+		width int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantMin float64
+		wantMax float64
+	}{
+		{"", args{x: 1.000124521313423, width: 2}, 0.995, 1.005},
+		{"", args{x: 3.000124521313423, width: 2}, 2.995, 3.005},
+		{"", args{x: 5.000124521313423, width: 2}, 4.995, 5.005},
+		{"", args{x: 1.000124521313423, width: 2}, 0.995, 1.005},
+		{"", args{x: 3.4000124521313423, width: 2}, 3.395, 3.405},
+		{"", args{x: 3.5000124521313423, width: 2}, 3.495, 3.505},
+		{"", args{x: 3.6000124521313423, width: 2}, 3.595, 3.605},
+		{"", args{x: 4.5000124521313423, width: 2}, 4.495, 4.505},
+		{"", args{x: 100.0000124521313423, width: 2}, 99.995, 100.005},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotMin, gotMax := DistanceRangeAround(tt.args.x, tt.args.width)
+			if gotMin != tt.wantMin {
+				t.Errorf("DistanceRangeAround() gotMin = %v, want %v", gotMin, tt.wantMin)
+			}
+			if gotMax != tt.wantMax {
+				t.Errorf("DistanceRangeAround() gotMax = %v, want %v", gotMax, tt.wantMax)
+			}
+		})
+	}
+}
