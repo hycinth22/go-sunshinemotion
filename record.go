@@ -153,6 +153,12 @@ func smartCreateRecords(schoolID int64, userID int64, limitParams LimitParams, r
 	)
 	sum := 0.0
 	for remain >= limitParams.LimitSingleDistance.Min-EpsilonDistance {
+		if remain < limitParams.RandDistance.Min-EpsilonDistance {
+			limitParams.RandDistance.Min = remain
+			if limitParams.RandDistance.Min < limitParams.RandDistance.Max {
+				limitParams.RandDistance.Max = limitParams.RandDistance.Min
+			}
+		}
 		singleDistance := smartCreateDistance(limitParams, remain)
 		if singleDistance < limitParams.LimitSingleDistance.Min-EpsilonDistance {
 			break
