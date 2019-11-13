@@ -13,23 +13,52 @@ type LimitParams struct {
 	MinutePerKM Float64Range
 }
 
-func GetDefaultLimitParams(sex string) LimitParams {
+func GetDefaultLimitParams(schoolID int64, sex string) LimitParams {
 	// 参数设定：
 	// MinuteDuration: min>minDis*3, max<maxDis*10
-	switch sex {
-	case "F":
+	switch schoolID {
+	default:
+		fallthrough
+	case 60:
+		switch sex {
+		case "F":
+			return LimitParams{
+				RandDistance:          Float64Range{2.995, 3.0},
+				LimitSingleDistance:   Float64Range{1.0, 3.0},
+				LimitTotalMaxDistance: 3.0,
+				MinutePerKM:           Float64Range{7.0, 13.0},
+			}
+		case "M":
+			return LimitParams{
+				RandDistance:          Float64Range{4.995, 5.0},
+				LimitSingleDistance:   Float64Range{2.0, 5.0},
+				LimitTotalMaxDistance: 5.0,
+				MinutePerKM:           Float64Range{8.0, 14.0},
+			}
+		}
+	case 68:
+		switch sex {
+		case "F":
+			return LimitParams{
+				RandDistance:          Float64Range{2.995, 3.0},
+				LimitSingleDistance:   Float64Range{1.0, 3.0},
+				LimitTotalMaxDistance: 3.0,
+				MinutePerKM:           Float64Range{7.0, 13.0},
+			}
+		case "M":
+			return LimitParams{
+				RandDistance:          Float64Range{3.995, 4.0},
+				LimitSingleDistance:   Float64Range{2.0, 4.0},
+				LimitTotalMaxDistance: 4.0,
+				MinutePerKM:           Float64Range{8.0, 14.0},
+			}
+		}
+	case 69:
 		return LimitParams{
 			RandDistance:          Float64Range{2.995, 3.0},
 			LimitSingleDistance:   Float64Range{1.0, 3.0},
 			LimitTotalMaxDistance: 3.0,
 			MinutePerKM:           Float64Range{7.0, 13.0},
-		}
-	case "M":
-		return LimitParams{
-			RandDistance:          Float64Range{4.995, 5.0},
-			LimitSingleDistance:   Float64Range{2.0, 5.0},
-			LimitTotalMaxDistance: 5.0,
-			MinutePerKM:           Float64Range{8.0, 14.0},
 		}
 	}
 	return LimitParams{}
